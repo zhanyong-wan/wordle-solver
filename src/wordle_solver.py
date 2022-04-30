@@ -7,7 +7,7 @@ USAGE
     wordle_solver.py demo
       demonstrates solving a Wordle puzzle.
 
-    wordle_solver.py resolve
+    wordle_solver.py solve
       helps you solve a Wordle puzzle (https://www.nytimes.com/games/wordle/index.html);
       here's how it works:
       
@@ -116,7 +116,7 @@ def Demo():
     if hints == 'MMMMM':
       print(f'Success!  The answer is {FormatHints(guess, hints)}.')
       break
-    print(f'Hint: {FormatHints(guess, hints)}')
+    print(f'Hints: {FormatHints(guess, hints)}')
     words = FilterByHints(words, guess, hints)
 
 def IsValidHints(hints):
