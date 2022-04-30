@@ -50,10 +50,11 @@ def GetLetterFrequencies(words):
       letter_freq[letter] += 1
   return letter_freq
 
-def GetWordWithHighestLetterFrequencies(words):
+def GetWordWithHighestLetterFrequencies(words, try_all_words=False):
   letter_freq = GetLetterFrequencies(words)
   word_weights = []
-  for word in words:
+  candidates = ALL_WORDS if try_all_words else words
+  for word in candidates:
     weight = sum(letter_freq[ch] for ch in set(word))
     word_weights.append((word, weight))
   return max(word_weights, default=(None, 0), key=lambda word_weight: word_weight[1])[0]
@@ -133,6 +134,23 @@ class HardModeEagerWordleSolver(WordleSolverBase):
 
   def SuggestGuess(self):
     return GetWordWithHighestLetterFrequencies(self.candidates)
+
+class IgnoreEarliestHintsWordleSolver(WordleSolverBase):
+  """A solver that always chooses from the entire word list in its first 2 tries.
+
+    Tested 12947 words.
+    Failed: 1642 words 12.68%.
+    1 guesses: 1 words 0.01%.
+    2 guesses: 64 words 0.49%.
+    3 guesses: 1900 words 14.68%.
+    4 guesses: 4427 words 34.19%.
+    5 guesses: 3321 words 25.65%.
+    6 guesses: 1592 words 12.30%.
+  """
+
+  def SuggestGuess(self):
+    num_guesses = len(self.guess_hints)
+    return GetWordWithHighestLetterFrequencies(self.candidates, try_all_words=num_guesses < 2)
 
 class AudioLeftyWordleSolver(WordleSolverBase):
   """A solver that tries audio and lefty first.
@@ -257,8 +275,12 @@ def Solve(solver_factory):
 def main():
   print('Welcome to Zhanyong Wan\'s Wordle Solver!\n')
   args = sys.argv[1:]
-  # Valid choices: AudioLeftyWordleSolver, AudioWordleSolver, HardModeEagerWordleSolver
-  solver_factory = AudioWordleSolver
+  # Valid choices:
+  #   AudioLeftyWordleSolver,
+  #   AudioWordleSolver,
+  #   HardModeEagerWordleSolver,
+  #   IgnoreEarliestHintsWordleSolver
+  solver_factory = IgnoreEarliestHintsWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
