@@ -43,10 +43,28 @@ def GetHints(guess, answer):
     hints += hint
   return hints
 
+def MatchesHints(word, guess, hints):
+  for i, hint in enumerate(hints):
+    if hint == 'M':
+      if word[i] != guess[i]:
+        return False
+    elif hint == 'O':
+      if word[i] == guess[i]:
+        return False
+      elif guess[i] not in word:
+        return False
+    else:
+      if guess[i] in word:
+        return False
+  return True
+
+def FilterByHints(words, guess, hints):
+  return [word for word in words if MatchesHints(word, guess, hints)]
+
 def Colored(r, g, b, text):
   return f'\033[38;2;{r};{g};{b}m{text}\033[38;2;255;255;255m'
 
-def PrintHints(guess, hints):
+def FormatHints(guess, hints):
   formatted = ''
   for i, letter in enumerate(guess):
     hint = hints[i]
@@ -63,12 +81,16 @@ def main():
   random.seed()
   words = GetWordList()
   answer = words[random.randrange(0, len(words))]
-  sorted_word_weights = SortByLetterFrequencies(words)
-  guess = sorted_word_weights[0][0]
-  print(f'Guess #1: {guess}')
-  hints = GetHints(guess, answer)
-  print(f'Hint: {hints}')
-  print(PrintHints(guess, hints))
+  for attempt in range(5):
+    sorted_word_weights = SortByLetterFrequencies(words)
+    guess = sorted_word_weights[0][0]
+    print(f'Guess #{attempt +1}: {guess}')
+    hints = GetHints(guess, answer)
+    if hints == 'MMMMM':
+      print(f'Success!  The answer is {FormatHints(guess, hints)}.')
+      break
+    print(f'Hint: {FormatHints(guess, hints)}')
+    words = FilterByHints(words, guess, hints)
 
 if __name__ == '__main__':
   main()
