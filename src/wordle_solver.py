@@ -147,17 +147,17 @@ def TrySolve(solver, answer, show_process=True):
     print('Oops, I ran out of attempts.')
   return 0
 
-def Demo():
+def Demo(solver_factory):
   random.seed()
   answer = ALL_WORDS[random.randrange(0, len(ALL_WORDS))]
-  TrySolve(HardModeEagerWordleSolver(), answer)
+  TrySolve(solver_factory(), answer)
 
-def Exhaust():
+def Exhaust(solver_factory):
   total_num_words = len(ALL_WORDS)
   failed = []
   guess_freq = defaultdict(int)  # Maps # of guesses to frequency.
   for i, answer in enumerate(ALL_WORDS):
-    solver = HardModeEagerWordleSolver()
+    solver = solver_factory()
     num_guesses = TrySolve(solver, answer, show_process=False)
     guess_freq[num_guesses] += 1
     if not num_guesses:
@@ -182,8 +182,8 @@ def IsValidHints(hints):
       return False
   return True
 
-def Solve():
-  solver = HardModeEagerWordleSolver()
+def Solve(solver_factory):
+  solver = solver_factory()
   for attempt in range(6):
     guess = solver.SuggestGuess()
     if not guess:
@@ -206,12 +206,13 @@ def Solve():
 def main():
   print('Welcome to Zhanyong Wan\'s Wordle Solver!\n')
   args = sys.argv[1:]
+  solver_factory = HardModeEagerWordleSolver
   if 'demo' in args:
-    Demo()
+    Demo(solver_factory)
   elif 'solve' in args:
-    Solve()
+    Solve(solver_factory)
   elif 'exhaust' in args:
-    Exhaust()
+    Exhaust(solver_factory)
   else:
     sys.exit(__doc__)
 
