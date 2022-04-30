@@ -119,10 +119,42 @@ class WordleSolverBase:
     self.candidates = FilterByHints(self.candidates, guess, hints)
 
 class HardModeEagerWordleSolver(WordleSolverBase):
-  """A hard-mode solver that always tries the most likely word."""
+  """A hard-mode solver that always tries the most likely word.
+
+    Tested 12947 words.
+    Failed: 1624 words 12.54%.
+    1 guesses: 1 words 0.01%.
+    2 guesses: 163 words 1.26%.
+    3 guesses: 1968 words 15.20%.
+    4 guesses: 4434 words 34.25%.
+    5 guesses: 3208 words 24.78%.
+    6 guesses: 1549 words 11.96%.
+  """
 
   def SuggestGuess(self):
     return GetWordWithHighestLetterFrequencies(self.candidates)
+
+class AudioLeftyWordleSolver(WordleSolverBase):
+  """A solver that tries audio and lefty first.
+
+    Tested 12947 words.
+    Failed: 1214 words 9.38%.
+    1 guesses: 1 words 0.01%.
+    2 guesses: 1 words 0.01%.
+    3 guesses: 1426 words 11.01%.
+    4 guesses: 4707 words 36.36%.
+    5 guesses: 3988 words 30.80%.
+    6 guesses: 1610 words 12.44%.
+  """
+
+    def SuggestGuess(self):
+      num_guesses = len(self.guess_hints)
+      if num_guesses == 0:
+        return 'AUDIO'
+      if num_guesses == 1:
+        return 'LEFTY'
+      return GetWordWithHighestLetterFrequencies(self.candidates)
+        
 
 def TrySolve(solver, answer, show_process=True):
   """Returns the number of attempts (0 means failed)."""
@@ -172,7 +204,7 @@ def Exhaust(solver_factory):
     else:
       prefix = 'Failed'
     num_words = guess_freq[num_guesses]
-    print(f'{prefix}: {num_words} words {num_words*100.0/total_num_words}%.')
+    print(f'{prefix}: {num_words} words {num_words*100.0/total_num_words:.2f}%.')
 
 def IsValidHints(hints):
   if len(hints) != 5:
@@ -206,6 +238,7 @@ def Solve(solver_factory):
 def main():
   print('Welcome to Zhanyong Wan\'s Wordle Solver!\n')
   args = sys.argv[1:]
+  # Valid choices: AudioLeftyWordleSolver, HardModeEagerWordleSolver
   solver_factory = HardModeEagerWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
