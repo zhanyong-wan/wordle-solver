@@ -48,6 +48,7 @@ def GetLetterFrequencies(words):
       letter_freq[letter] += 1
   return letter_freq
 
+# TODO: no need to sort the array - we just need the highest ranked one word.
 def SortByLetterFrequencies(words):
   letter_freq = GetLetterFrequencies(words)
   word_weights = []
@@ -101,23 +102,42 @@ def FormatHints(guess, hints):
       formatted += Colored(0, 255, 0, letter)
   return formatted
 
+def TrySolve(answer, words, show_process=True):
+  for attempt in range(6):
+    sorted_word_weights = SortByLetterFrequencies(words)
+    if not sorted_word_weights:
+      if show_process:
+        print('Hmm, I ran out of ideas.')
+      return False
+    guess = sorted_word_weights[0][0]
+    if show_process:
+      print(f'Guess #{attempt +1}: {guess}')
+    hints = GetHints(guess, answer)
+    if hints == 'MMMMM':
+      if show_process:
+        print(f'Success!  The answer is {FormatHints(guess, hints)}.')
+      return True
+    if show_process:
+      print(f'Hints: {FormatHints(guess, hints)}')
+    words = FilterByHints(words, guess, hints)
+  if show_process:
+    print('Oops, I ran out of attempts.')
+  return False
+
 def Demo():
   random.seed()
   words = GetWordList()
   answer = words[random.randrange(0, len(words))]
-  for attempt in range(6):
-    sorted_word_weights = SortByLetterFrequencies(words)
-    if not sorted_word_weights:
-      print('Hmm, I ran out of ideas.')
-      break
-    guess = sorted_word_weights[0][0]
-    print(f'Guess #{attempt +1}: {guess}')
-    hints = GetHints(guess, answer)
-    if hints == 'MMMMM':
-      print(f'Success!  The answer is {FormatHints(guess, hints)}.')
-      break
-    print(f'Hints: {FormatHints(guess, hints)}')
-    words = FilterByHints(words, guess, hints)
+  TrySolve(answer, words)
+
+def Exhaust():
+  words = GetWordList()
+  failed = []
+  for i, answer in enumerate(words):
+    if not TrySolve(answer, words, show_process=False):
+      print(f'Failed to solve for answer {answer} (word {i} out of {len(words)}).')
+      failed.append(answer)
+  print(f'Failed to solve for {len(failed)} out of {len(words)} words.')
 
 def IsValidHints(hints):
   if len(hints) != 5:
@@ -157,6 +177,8 @@ def main():
     Demo()
   elif 'solve' in args:
     Solve()
+  elif 'exhaust' in args:
+    Exhaust()
   else:
     sys.exit(__doc__)
 
