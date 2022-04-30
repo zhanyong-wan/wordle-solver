@@ -147,14 +147,33 @@ class AudioLeftyWordleSolver(WordleSolverBase):
     6 guesses: 1610 words 12.44%.
   """
 
-    def SuggestGuess(self):
-      num_guesses = len(self.guess_hints)
-      if num_guesses == 0:
-        return 'AUDIO'
-      if num_guesses == 1:
-        return 'LEFTY'
-      return GetWordWithHighestLetterFrequencies(self.candidates)
-        
+  def SuggestGuess(self):
+    num_guesses = len(self.guess_hints)
+    if num_guesses == 0:
+      return 'AUDIO'
+    if num_guesses == 1:
+      return 'LEFTY'
+    return GetWordWithHighestLetterFrequencies(self.candidates)
+
+
+class AudioWordleSolver(WordleSolverBase):
+  """A solver that tries audio first.
+
+    Tested 12947 words.
+    Failed: 1559 words 12.04%.
+    1 guesses: 1 words 0.01%.
+    2 guesses: 140 words 1.08%.
+    3 guesses: 1828 words 14.12%.
+    4 guesses: 4464 words 34.48%.
+    5 guesses: 3343 words 25.82%.
+    6 guesses: 1612 words 12.45%.
+  """
+
+  def SuggestGuess(self):
+    num_guesses = len(self.guess_hints)
+    if num_guesses == 0:
+      return 'AUDIO'
+    return GetWordWithHighestLetterFrequencies(self.candidates)
 
 def TrySolve(solver, answer, show_process=True):
   """Returns the number of attempts (0 means failed)."""
@@ -238,8 +257,8 @@ def Solve(solver_factory):
 def main():
   print('Welcome to Zhanyong Wan\'s Wordle Solver!\n')
   args = sys.argv[1:]
-  # Valid choices: AudioLeftyWordleSolver, HardModeEagerWordleSolver
-  solver_factory = HardModeEagerWordleSolver
+  # Valid choices: AudioLeftyWordleSolver, AudioWordleSolver, HardModeEagerWordleSolver
+  solver_factory = AudioWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
