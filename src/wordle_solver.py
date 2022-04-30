@@ -1,9 +1,34 @@
 #!/usr/bin/env python3
 
+"""New York Times Wordle Puzzle Solver.
+
+USAGE
+
+    wordle_solver.py demo
+      demonstrates solving a Wordle puzzle.
+
+    wordle_solver.py resolve
+      helps you solve a Wordle puzzle (https://www.nytimes.com/games/wordle/index.html);
+      here's how it works:
+      
+      1. The tool tells you what you should guess next.
+      2. You type the guess into the Wordle game.
+      3. The game gives you hints based on the guess.
+      4. You tell the tool what the hints are; for example, 'OMXXX' means that
+         the first letter of the guess is in the answer but at a wrong spot,
+         the second letter of the guess is in the answer and at the right spot,
+         and the remaining letters of the guess are not in the answer.
+      5. Repeat the above steps.
+
+      This tool's strategy conforms to the game's hard mode. I.e. it only makes
+      guesses that conform to all revealed hints.
+"""
+
 from collections import defaultdict
 
 import os
 import random
+import sys
 
 def GetWordList():
   py_file_dir = os.path.dirname(__file__)
@@ -76,13 +101,15 @@ def FormatHints(guess, hints):
       formatted += Colored(0, 255, 0, letter)
   return formatted
 
-def main():
-  print('Welcome to Zhanyong Wan\'s Wordle Solver!')
+def Demo():
   random.seed()
   words = GetWordList()
   answer = words[random.randrange(0, len(words))]
-  for attempt in range(5):
+  for attempt in range(6):
     sorted_word_weights = SortByLetterFrequencies(words)
+    if not sorted_word_weights:
+      print('Hmm, I ran out of ideas.')
+      break
     guess = sorted_word_weights[0][0]
     print(f'Guess #{attempt +1}: {guess}')
     hints = GetHints(guess, answer)
@@ -91,6 +118,47 @@ def main():
       break
     print(f'Hint: {FormatHints(guess, hints)}')
     words = FilterByHints(words, guess, hints)
+
+def IsValidHints(hints):
+  if len(hints) != 5:
+    return False
+  for hint in hints:
+    if hint not in 'MOX':
+      return False
+  return True
+
+def Solve():
+  words = GetWordList()
+  for attempt in range(6):
+    sorted_word_weights = SortByLetterFrequencies(words)
+    if not sorted_word_weights:
+      print('Hmm, I ran out of ideas.')
+      break
+
+    guess = sorted_word_weights[0][0]
+    print(f'Please type this as your guess #{attempt +1}: {guess}')
+    while True:
+      hints = input('What are the hints you got (5-letter string, where M = match, '
+                    'O = wrong order, X: not match)? ').upper()
+      if IsValidHints(hints):
+        break
+      print('Invalid hints.  Please type again.')
+    if hints == 'MMMMM':
+      print(f'Success!  The answer is {FormatHints(guess, hints)}.')
+      break
+    print(f'Hint: {FormatHints(guess, hints)}')
+
+    words = FilterByHints(words, guess, hints)
+
+def main():
+  print('Welcome to Zhanyong Wan\'s Wordle Solver!\n')
+  args = sys.argv[1:]
+  if 'demo' in args:
+    Demo()
+  elif 'solve' in args:
+    Solve()
+  else:
+    sys.exit(__doc__)
 
 if __name__ == '__main__':
   main()
