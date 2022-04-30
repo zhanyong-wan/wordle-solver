@@ -48,14 +48,13 @@ def GetLetterFrequencies(words):
       letter_freq[letter] += 1
   return letter_freq
 
-# TODO: no need to sort the array - we just need the highest ranked one word.
-def SortByLetterFrequencies(words):
+def GetWordWithHighestLetterFrequencies(words):
   letter_freq = GetLetterFrequencies(words)
   word_weights = []
   for word in words:
     weight = sum(letter_freq[ch] for ch in set(word))
     word_weights.append((word, weight))
-  return sorted(word_weights, key=lambda word_weight: word_weight[1], reverse=True)
+  return max(word_weights, default=(None, 0), key=lambda word_weight: word_weight[1])[0]
 
 def GetHints(guess, answer):
   hints = ''
@@ -103,26 +102,27 @@ def FormatHints(guess, hints):
   return formatted
 
 def TrySolve(answer, words, show_process=True):
+  """Returns the number of attempts (0 means failed)."""
+
   for attempt in range(6):
-    sorted_word_weights = SortByLetterFrequencies(words)
-    if not sorted_word_weights:
+    guess = GetWordWithHighestLetterFrequencies(words)
+    if not guess:
       if show_process:
         print('Hmm, I ran out of ideas.')
-      return False
-    guess = sorted_word_weights[0][0]
+      return 0
     if show_process:
       print(f'Guess #{attempt +1}: {guess}')
     hints = GetHints(guess, answer)
     if hints == 'MMMMM':
       if show_process:
         print(f'Success!  The answer is {FormatHints(guess, hints)}.')
-      return True
+      return attempt + 1
     if show_process:
       print(f'Hints: {FormatHints(guess, hints)}')
     words = FilterByHints(words, guess, hints)
   if show_process:
     print('Oops, I ran out of attempts.')
-  return False
+  return 0
 
 def Demo():
   random.seed()
@@ -133,11 +133,20 @@ def Demo():
 def Exhaust():
   words = GetWordList()
   failed = []
+  guess_freq = defaultdict(int)  # Maps # of guesses to frequency.
   for i, answer in enumerate(words):
-    if not TrySolve(answer, words, show_process=False):
+    num_guesses = TrySolve(answer, words, show_process=False)
+    guess_freq[num_guesses] += 1
+    if not num_guesses:
       print(f'Failed to solve for answer {answer} (word {i} out of {len(words)}).')
       failed.append(answer)
-  print(f'Failed to solve for {len(failed)} out of {len(words)} words.')
+  print(f'Tested {len(words)} words.')
+  for num_guesses in sorted(guess_freq.keys()):
+    if num_guesses:
+      prefix = f'{num_guesses} guesses'
+    else:
+      prefix = 'Failed'
+    print(f'{prefix}: {guess_freq[num_guesses]} words.')
 
 def IsValidHints(hints):
   if len(hints) != 5:
@@ -150,12 +159,11 @@ def IsValidHints(hints):
 def Solve():
   words = GetWordList()
   for attempt in range(6):
-    sorted_word_weights = SortByLetterFrequencies(words)
-    if not sorted_word_weights:
+    guess = GetWordWithHighestLetterFrequencies(words)
+    if not guess:
       print('Hmm, I ran out of ideas.')
       break
 
-    guess = sorted_word_weights[0][0]
     print(f'Please type this as your guess #{attempt +1}: {guess}')
     while True:
       hints = input('What are the hints you got (5-letter string, where M = match, '
