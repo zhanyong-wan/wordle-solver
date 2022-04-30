@@ -41,6 +41,8 @@ def GetWordList():
         words.append(word)
   return words
 
+ALL_WORDS = GetWordList()
+
 def GetLetterFrequencies(words):
   letter_freq = defaultdict(int)
   for word in words:
@@ -126,12 +128,12 @@ def TrySolve(answer, words, show_process=True):
 
 def Demo():
   random.seed()
-  words = GetWordList()
+  words = ALL_WORDS
   answer = words[random.randrange(0, len(words))]
   TrySolve(answer, words)
 
 def Exhaust():
-  words = GetWordList()
+  words = ALL_WORDS
   failed = []
   guess_freq = defaultdict(int)  # Maps # of guesses to frequency.
   for i, answer in enumerate(words):
@@ -157,7 +159,7 @@ def IsValidHints(hints):
   return True
 
 def Solve():
-  words = GetWordList()
+  words = ALL_WORDS
   for attempt in range(6):
     guess = GetWordWithHighestLetterFrequencies(words)
     if not guess:
