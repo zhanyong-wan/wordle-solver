@@ -103,11 +103,32 @@ def FormatHints(guess, hints):
       formatted += Colored(0, 255, 0, letter)
   return formatted
 
-def TrySolve(answer, words, show_process=True):
+class WordleSolverBase:
+  """Base class for wordle solvers."""
+
+  def __init__(self):
+    self.guess_hints = []
+    self.candidates = ALL_WORDS[:]
+
+  def SuggestGuess(self):
+    """Subclasses should implement this to return a suggested guess or None."""
+    raise Exception('Not implemented.')
+
+  def MakeGuess(self, guess, hints):
+    self.guess_hints.append((guess, hints))
+    self.candidates = FilterByHints(self.candidates, guess, hints)
+
+class HardModeEagerWordleSolver(WordleSolverBase):
+  """A hard-mode solver that always tries the most likely word."""
+
+  def SuggestGuess(self):
+    return GetWordWithHighestLetterFrequencies(self.candidates)
+
+def TrySolve(solver, answer, show_process=True):
   """Returns the number of attempts (0 means failed)."""
 
   for attempt in range(6):
-    guess = GetWordWithHighestLetterFrequencies(words)
+    guess = solver.SuggestGuess()
     if not guess:
       if show_process:
         print('Hmm, I ran out of ideas.')
@@ -121,34 +142,37 @@ def TrySolve(answer, words, show_process=True):
       return attempt + 1
     if show_process:
       print(f'Hints: {FormatHints(guess, hints)}')
-    words = FilterByHints(words, guess, hints)
+    solver.MakeGuess(guess, hints)
   if show_process:
     print('Oops, I ran out of attempts.')
   return 0
 
 def Demo():
   random.seed()
-  words = ALL_WORDS
-  answer = words[random.randrange(0, len(words))]
-  TrySolve(answer, words)
+  answer = ALL_WORDS[random.randrange(0, len(ALL_WORDS))]
+  TrySolve(HardModeEagerWordleSolver(), answer)
 
 def Exhaust():
-  words = ALL_WORDS
+  total_num_words = len(ALL_WORDS)
   failed = []
   guess_freq = defaultdict(int)  # Maps # of guesses to frequency.
-  for i, answer in enumerate(words):
-    num_guesses = TrySolve(answer, words, show_process=False)
+  for i, answer in enumerate(ALL_WORDS):
+    solver = HardModeEagerWordleSolver()
+    num_guesses = TrySolve(solver, answer, show_process=False)
     guess_freq[num_guesses] += 1
     if not num_guesses:
-      print(f'Failed to solve for answer {answer} (word {i} out of {len(words)}).')
+      print(f'Failed to solve for answer {answer} (word {i} out of {total_num_words}).')
       failed.append(answer)
-  print(f'Tested {len(words)} words.')
+
+  # Print statistics.
+  print(f'Tested {total_num_words} words.')
   for num_guesses in sorted(guess_freq.keys()):
     if num_guesses:
       prefix = f'{num_guesses} guesses'
     else:
       prefix = 'Failed'
-    print(f'{prefix}: {guess_freq[num_guesses]} words.')
+    num_words = guess_freq[num_guesses]
+    print(f'{prefix}: {num_words} words {num_words*100.0/total_num_words}%.')
 
 def IsValidHints(hints):
   if len(hints) != 5:
@@ -159,9 +183,9 @@ def IsValidHints(hints):
   return True
 
 def Solve():
-  words = ALL_WORDS
+  solver = HardModeEagerWordleSolver()
   for attempt in range(6):
-    guess = GetWordWithHighestLetterFrequencies(words)
+    guess = solver.SuggestGuess()
     if not guess:
       print('Hmm, I ran out of ideas.')
       break
@@ -177,8 +201,7 @@ def Solve():
       print(f'Success!  The answer is {FormatHints(guess, hints)}.')
       break
     print(f'Hint: {FormatHints(guess, hints)}')
-
-    words = FilterByHints(words, guess, hints)
+    solver.MakeGuess(guess, hints)
 
 def main():
   print('Welcome to Zhanyong Wan\'s Wordle Solver!\n')
