@@ -98,6 +98,65 @@ def GetWordPairsWithHighestLetterFrequencies(words, try_all_words=False):
         best_pairs.append((word1, word2))
   return best_pairs
 
+def NormalizeWordAsLetterSet(word):
+  # hello => ehlo
+  # basic => abcis
+  return ''.join(sorted(set(word)))
+
+def GetWordTriplesWithHighestLetterFrequencies(words, try_all_words=False):
+  letter_freq = GetLetterFrequencies(words)
+  candidate_words = ALL_WORDS if try_all_words else words
+
+  # For the purpose of letter frequency coverage, the order of the letters
+  # in a word and duplicated letters don't matter.  Therefore we can treat
+  # a word as a set of letters.  This allows us to merge words that consist
+  # of the same letters (i.e. anagrams).  For example, we don't have to
+  # consider SALES and LESSA as different words as they contain the same
+  # set of letters.  With this optimization, we only need to consider 7622
+  # candidates instead of 12947.  This greatly speeds up this function,
+  # which has O(N^3) time complexity.
+  candidate_to_word = {NormalizeWordAsLetterSet(word):word
+                       for word in candidate_words}
+  candidates = candidate_to_word.keys()
+  candidate_freqs = [
+      (candidate, GetWordLetterFrequency(candidate, letter_freq))
+      for candidate in candidates]
+  candidate_to_freq = {pair[0]:pair[1] for pair in candidate_freqs}
+  sorted_candidate_freqs = sorted(
+      candidate_freqs, key=lambda pair: pair[1], reverse=True)
+  sorted_candidates = [pair[0] for pair in sorted_candidate_freqs]
+  best_triples = []
+  max_freq = 0
+  num_candidates = len(sorted_candidates)
+  print(f'Processing {num_candidates} candidates.')
+  for i, candidate1 in enumerate(sorted_candidates):
+    word1 = candidate_to_word[candidate1]
+    print(f'{i} - {word1}')
+    candidate1_freq = candidate_to_freq[candidate1]
+    for j in range(i + 1, num_candidates):
+      candidate2 = sorted_candidates[j]
+      word2 = candidate_to_word[candidate2]
+      candidate2_freq = candidate_to_freq[candidate2]
+      if candidate1_freq + 2*candidate2_freq < max_freq:
+        break
+      candidate1_2_freq = GetWordLetterFrequency(
+          candidate1 + candidate2, letter_freq)
+      for k in range(j + 1, num_candidates):
+        candidate3 = sorted_candidates[k]
+        candidate3_freq = candidate_to_freq[candidate3]
+        if candidate1_2_freq + candidate3_freq < max_freq:
+          break
+        freq = GetWordLetterFrequency(
+            candidate1 + candidate2 + candidate3, letter_freq)
+        if freq >= max_freq:
+          triple = (word1, word2, candidate_to_word[candidate3])
+          if freq > max_freq:
+            max_freq = freq
+            best_triples = [triple]
+          else:  # freq == max_freq
+            best_triples.append(triple)
+  return best_triples
+
 def GetHints(guess, answer):
   hints = ''
   for i, letter in enumerate(guess):
@@ -258,6 +317,25 @@ class TwoCoverWordleSolver(WordleSolverBase):
       return self.best_pair[num_guesses]
     return GetWordWithHighestLetterFrequencies(self.candidates)
 
+# GetWordTriplesWithHighestLetterFrequencies
+class ThreeCoverWordleSolver(WordleSolverBase):
+  """A solver that tries to cover the highest-frequency letters in the first 3 guesses.
+  """
+
+  def __init__(self):
+    super().__init__()
+    # Set best_triple to the result of GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS).
+    # We hard code the words here as it's slow to call this function.
+    triples = GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS)
+    print(f'Found {len(triples)} best triples: {triples}')
+    self.best_triple = triples[0]
+
+  def SuggestGuess(self):
+    num_guesses = len(self.guess_hints)
+    if num_guesses < 3:
+      return self.best_triple[num_guesses]
+    return GetWordWithHighestLetterFrequencies(self.candidates)
+
 def TrySolve(solver, answer, show_process=True):
   """Returns the number of attempts (0 means failed)."""
 
@@ -363,8 +441,9 @@ def main():
   #   AudioWordleSolver,
   #   HardModeEagerWordleSolver,
   #   IgnoreEarliestHintsWordleSolver,
+  #   ThreeCoverWordleSolver,
   #   TwoCoverWordleSolver
-  solver_factory = TwoCoverWordleSolver
+  solver_factory = ThreeCoverWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
