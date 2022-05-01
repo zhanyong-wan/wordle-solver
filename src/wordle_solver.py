@@ -223,7 +223,9 @@ class TwoCoverWordleSolver(WordleSolverBase):
 
   def __init__(self):
     super().__init__()
-    self.best_pair = ('STARN', 'LOUIE')  # GetTwoWordsWithHighestLetterFrequencies(ALL_WORDS)
+    # Set best_pair to the result of GetTwoWordsWithHighestLetterFrequencies(ALL_WORDS).
+    # We hard code the words here as it's slow to call the GetTwoWords*() function.
+    self.best_pair = ('STARN', 'LOUIE')
 
   def SuggestGuess(self):
     num_guesses = len(self.guess_hints)
