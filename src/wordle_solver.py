@@ -320,14 +320,24 @@ class TwoCoverWordleSolver(WordleSolverBase):
 class ThreeCoverWordleSolver(WordleSolverBase):
   """A solver that tries to cover the highest-frequency letters in the first 3 guesses.
 
-    Tested 12947 words.
+  For 'AEROS', 'CLINT', 'DUMPY':
     Failed: 636 words 4.91%.
+
+  For 'MUTES', 'PLAID', 'CORNY':
+    Failed: 643 words 4.97%.
+
+  For 'EPICS', 'NOMAD', 'TRULY':
+    Failed: 652 words 5.04%.
+
+  For 'LYRIC', 'UPSET', 'NOMAD':
+    Tested 12947 words.
+    Failed: 617 words 4.77%.
     1 guesses: 1 words 0.01%.
     2 guesses: 1 words 0.01%.
     3 guesses: 1 words 0.01%.
-    4 guesses: 6930 words 53.53%.
-    5 guesses: 4196 words 32.41%.
-    6 guesses: 1182 words 9.13%.
+    4 guesses: 6377 words 49.25%.
+    5 guesses: 4710 words 36.38%.
+    6 guesses: 1240 words 9.58%.
   """
 
   def __init__(self):
@@ -336,7 +346,7 @@ class ThreeCoverWordleSolver(WordleSolverBase):
     # We hard code the words here as it's slow to call this function.
     # triples = GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS)
     # print(f'Found {len(triples)} best triples: {triples}')
-    self.best_triple = ('AEROS', 'CLINT', 'DUMPY')
+    self.best_triple = ('LYRIC', 'UPSET', 'NOMAD')
 
   def SuggestGuess(self):
     num_guesses = len(self.guess_hints)
