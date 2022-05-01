@@ -62,18 +62,41 @@ def GetWordWithHighestLetterFrequencies(words, try_all_words=False):
       best_word = word
   return best_word
 
-def GetTwoWordsWithHighestLetterFrequencies(words, try_all_words=False):
+def GetWordLetterFrequency(word, letter_freq):
+  return sum(letter_freq[letter] for letter in set(word))
+
+# This returns 300 best pairs.  TODO: find which of the 300 is the best.
+def GetWordPairsWithHighestLetterFrequencies(words, try_all_words=False):
   letter_freq = GetLetterFrequencies(words)
   candidates = ALL_WORDS if try_all_words else words
-  best_pair = None
+  candidate_freqs = [(word, GetWordLetterFrequency(word, letter_freq))
+                     for word in candidates]
+  candidate_to_freq = {pair[0]:pair[1] for pair in candidate_freqs}
+  sorted_candidate_freqs = sorted(
+      candidate_freqs, key=lambda pair: pair[1], reverse=True)
+  sorted_candidates = [pair[0] for pair in sorted_candidate_freqs]
+  best_pairs = []
   max_freq = 0
-  for i, word1 in enumerate(candidates):
-    for word2 in candidates[i + 1:]:
-      freq = sum(letter_freq[ch] for ch in set(word1 + word2))
+  num_words = len(sorted_candidates)
+  for i, word1 in enumerate(sorted_candidates):
+    word1_freq = candidate_to_freq[word1]
+    for j in range(i + 1, num_words):
+      word2 = sorted_candidates[j]
+      word2_freq = candidate_to_freq[word2]
+      # Optimization: the letter frequency of (word1, word2) is at most
+      # the letter frequency of word1 + the letter frequency of word2
+      # (it can be smaller as word1 and word2 may contain overlapping
+      # letters).  Therefore there's no need to try the remaining possible
+      # word2 values if they cannot possibly beat max_freq.
+      if word1_freq + word2_freq < max_freq:
+        break
+      freq = GetWordLetterFrequency(word1 + word2, letter_freq)
       if freq > max_freq:
         max_freq = freq
-        best_pair = (word1, word2)
-  return best_pair
+        best_pairs = [(word1, word2)]
+      elif freq == max_freq:
+        best_pairs.append((word1, word2))
+  return best_pairs
 
 def GetHints(guess, answer):
   hints = ''
@@ -223,8 +246,10 @@ class TwoCoverWordleSolver(WordleSolverBase):
 
   def __init__(self):
     super().__init__()
-    # Set best_pair to the result of GetTwoWordsWithHighestLetterFrequencies(ALL_WORDS).
-    # We hard code the words here as it's slow to call the GetTwoWords*() function.
+    # Set best_pair to the result of GetWordPairsWithHighestLetterFrequencies(ALL_WORDS).
+    # We hard code the words here as it's slow to call this function.
+    # pairs = GetWordPairsWithHighestLetterFrequencies(ALL_WORDS)
+    # print(f'Found {len(pairs)} best pairs: {pairs}')  # 300 pairs.
     self.best_pair = ('STARN', 'LOUIE')
 
   def SuggestGuess(self):
