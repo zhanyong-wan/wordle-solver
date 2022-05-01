@@ -52,12 +52,28 @@ def GetLetterFrequencies(words):
 
 def GetWordWithHighestLetterFrequencies(words, try_all_words=False):
   letter_freq = GetLetterFrequencies(words)
-  word_weights = []
   candidates = ALL_WORDS if try_all_words else words
+  best_word = None
+  max_freq = 0
   for word in candidates:
-    weight = sum(letter_freq[ch] for ch in set(word))
-    word_weights.append((word, weight))
-  return max(word_weights, default=(None, 0), key=lambda word_weight: word_weight[1])[0]
+    freq = sum(letter_freq[ch] for ch in set(word))
+    if freq > max_freq:
+      max_freq = freq
+      best_word = word
+  return best_word
+
+def GetTwoWordsWithHighestLetterFrequencies(words, try_all_words=False):
+  letter_freq = GetLetterFrequencies(words)
+  candidates = ALL_WORDS if try_all_words else words
+  best_pair = None
+  max_freq = 0
+  for i, word1 in enumerate(candidates):
+    for word2 in candidates[i + 1:]:
+      freq = sum(letter_freq[ch] for ch in set(word1 + word2))
+      if freq > max_freq:
+        max_freq = freq
+        best_pair = (word1, word2)
+  return best_pair
 
 def GetHints(guess, answer):
   hints = ''
@@ -173,7 +189,6 @@ class AudioLeftyWordleSolver(WordleSolverBase):
       return 'LEFTY'
     return GetWordWithHighestLetterFrequencies(self.candidates)
 
-
 class AudioWordleSolver(WordleSolverBase):
   """A solver that tries audio first.
 
@@ -191,6 +206,29 @@ class AudioWordleSolver(WordleSolverBase):
     num_guesses = len(self.guess_hints)
     if num_guesses == 0:
       return 'AUDIO'
+    return GetWordWithHighestLetterFrequencies(self.candidates)
+
+class TwoCoverWordleSolver(WordleSolverBase):
+  """A solver that tries to cover the highest-frequency letters in the first 2 guesses.
+
+    Tested 12947 words.
+    Failed: 1150 words 8.88%.
+    1 guesses: 1 words 0.01%.
+    2 guesses: 1 words 0.01%.
+    3 guesses: 2170 words 16.76%.
+    4 guesses: 5100 words 39.39%.
+    5 guesses: 3225 words 24.91%.
+    6 guesses: 1300 words 10.04%.
+  """
+
+  def __init__(self):
+    super().__init__()
+    self.best_pair = ('STARN', 'LOUIE')  # GetTwoWordsWithHighestLetterFrequencies(ALL_WORDS)
+
+  def SuggestGuess(self):
+    num_guesses = len(self.guess_hints)
+    if num_guesses < 2:
+      return self.best_pair[num_guesses]
     return GetWordWithHighestLetterFrequencies(self.candidates)
 
 def TrySolve(solver, answer, show_process=True):
@@ -218,7 +256,7 @@ def TrySolve(solver, answer, show_process=True):
 
 def Demo(solver_factory):
   random.seed()
-  answer = ALL_WORDS[random.randrange(0, len(ALL_WORDS))]
+  answer = random.choice(ALL_WORDS)
   TrySolve(solver_factory(), answer)
 
 def Exhaust(solver_factory):
@@ -279,8 +317,9 @@ def main():
   #   AudioLeftyWordleSolver,
   #   AudioWordleSolver,
   #   HardModeEagerWordleSolver,
-  #   IgnoreEarliestHintsWordleSolver
-  solver_factory = IgnoreEarliestHintsWordleSolver
+  #   IgnoreEarliestHintsWordleSolver,
+  #   TwoCoverWordleSolver
+  solver_factory = TwoCoverWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
