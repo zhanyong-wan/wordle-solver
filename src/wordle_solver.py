@@ -434,7 +434,7 @@ def Solve(solver_factory):
           'Press <enter> to see all words that satisfy the existing hints. ').upper()
       if not guess:
         print('These words satisfy all hints so far:')
-        print('\n'.join(sorted(solver.candidates)))
+        print(', '.join(sorted(solver.candidates)))
         continue
       if IsValidGuess(guess):
         break
@@ -461,7 +461,7 @@ def main():
   #   IgnoreEarliestHintsWordleSolver,
   #   ThreeCoverWordleSolver,
   #   TwoCoverWordleSolver
-  solver_factory = ThreeCoverWordleSolver
+  solver_factory = HardModeEagerWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
