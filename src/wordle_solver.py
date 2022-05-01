@@ -283,6 +283,14 @@ def Exhaust(solver_factory):
     num_words = guess_freq[num_guesses]
     print(f'{prefix}: {num_words} words {num_words*100.0/total_num_words:.2f}%.')
 
+def IsValidGuess(guess):
+  if len(guess) != 5:
+    return False
+  for ch in guess:
+    if not ch.isalpha():
+      return False
+  return True
+
 def IsValidHints(hints):
   if len(hints) != 5:
     return False
@@ -294,12 +302,22 @@ def IsValidHints(hints):
 def Solve(solver_factory):
   solver = solver_factory()
   for attempt in range(6):
-    guess = solver.SuggestGuess()
-    if not guess:
+    suggested_guess = solver.SuggestGuess()
+    if not suggested_guess:
       print('Hmm, I ran out of ideas.')
-      break
 
-    print(f'Please type this as your guess #{attempt +1}: {guess}')
+    print(f'{len(solver.candidates)} words satisfy all hints so far.')
+    while True:
+      guess = input(
+          f'What is your guess #{attempt + 1} (I suggest {suggested_guess})? '
+          'Press <enter> to see all words that satisfy the existing hints. ').upper()
+      if not guess:
+        print('These words satisfy all hints so far:')
+        print('\n'.join(sorted(solver.candidates)))
+        continue
+      if IsValidGuess(guess):
+        break
+      print('Invalid guess.  Please type again.')
     while True:
       hints = input('What are the hints you got (5-letter string, where M = match, '
                     'O = wrong order, X: not match)? ').upper()
