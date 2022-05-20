@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""New York Times Wordle Puzzle Solver.
+"""New York Times Wordle Puzzle Solver v1.0.
 
 USAGE
 
