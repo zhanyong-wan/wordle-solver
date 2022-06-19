@@ -52,9 +52,8 @@ def GetLetterFrequencies(words):
       letter_freq[letter] += 1
   return letter_freq
 
-def GetWordWithHighestLetterFrequencies(words, try_all_words=False):
-  letter_freq = GetLetterFrequencies(words)
-  candidates = ALL_WORDS if try_all_words else words
+def GetWordWithHighestLetterFrequencies(words_for_freq, candidates):
+  letter_freq = GetLetterFrequencies(words_for_freq)
   best_word = None
   max_freq = 0
   for word in candidates:
@@ -68,9 +67,9 @@ def GetWordLetterFrequency(word, letter_freq):
   return sum(letter_freq[letter] for letter in set(word))
 
 # This returns 300 best pairs.  TODO: find which of the 300 is the best.
-def GetWordPairsWithHighestLetterFrequencies(words, try_all_words=False):
+def GetWordPairsWithHighestLetterFrequencies(words):
   letter_freq = GetLetterFrequencies(words)
-  candidates = ALL_WORDS if try_all_words else words
+  candidates = words
   candidate_freqs = [(word, GetWordLetterFrequency(word, letter_freq))
                      for word in candidates]
   candidate_to_freq = {pair[0]:pair[1] for pair in candidate_freqs}
@@ -105,9 +104,9 @@ def NormalizeWordAsLetterSet(word):
   # basic => abcis
   return ''.join(sorted(set(word)))
 
-def GetWordTriplesWithHighestLetterFrequencies(words, try_all_words=False):
+def GetWordTriplesWithHighestLetterFrequencies(words):
   letter_freq = GetLetterFrequencies(words)
-  candidate_words = ALL_WORDS if try_all_words else words
+  candidate_words = words
 
   # For the purpose of letter frequency coverage, the order of the letters
   # in a word and duplicated letters don't matter.  Therefore we can treat
@@ -242,7 +241,7 @@ class HardModeEagerWordleSolver(WordleSolverBase):
   """
 
   def SuggestGuess(self):
-    return GetWordWithHighestLetterFrequencies(self.candidates)
+    return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class IgnoreEarliestHintsWordleSolver(WordleSolverBase):
   """A solver that always chooses from the entire word list in its first 2 tries.
@@ -268,7 +267,8 @@ class IgnoreEarliestHintsWordleSolver(WordleSolverBase):
 
   def SuggestGuess(self):
     num_guesses = len(self.guess_hints)
-    return GetWordWithHighestLetterFrequencies(self.candidates, try_all_words=num_guesses < 2)
+    return GetWordWithHighestLetterFrequencies(self.candidates,
+                                               ALL_WORDS if num_guesses < 2 else self.candidates)
 
 class AudioLeftyWordleSolver(WordleSolverBase):
   """A solver that tries audio and lefty first.
@@ -298,7 +298,7 @@ class AudioLeftyWordleSolver(WordleSolverBase):
       return 'AUDIO'
     if num_guesses == 1:
       return 'LEFTY'
-    return GetWordWithHighestLetterFrequencies(self.candidates)
+    return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class AudioWordleSolver(WordleSolverBase):
   """A solver that tries audio first.
@@ -326,7 +326,7 @@ class AudioWordleSolver(WordleSolverBase):
     num_guesses = len(self.guess_hints)
     if num_guesses == 0:
       return 'AUDIO'
-    return GetWordWithHighestLetterFrequencies(self.candidates)
+    return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class TwoCoverWordleSolver(WordleSolverBase):
   """A solver that tries to cover the highest-frequency letters in the first 2 guesses.
@@ -360,7 +360,7 @@ class TwoCoverWordleSolver(WordleSolverBase):
     num_guesses = len(self.guess_hints)
     if num_guesses < 2:
       return self.best_pair[num_guesses]
-    return GetWordWithHighestLetterFrequencies(self.candidates)
+    return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class ThreeCoverWordleSolver(WordleSolverBase):
   """A solver that tries to cover the highest-frequency letters in the first 3 guesses.
@@ -406,7 +406,7 @@ class ThreeCoverWordleSolver(WordleSolverBase):
     num_guesses = len(self.guess_hints)
     if num_guesses < 3:
       return self.best_triple[num_guesses]
-    return GetWordWithHighestLetterFrequencies(self.candidates)
+    return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 def TrySolve(solver, answer, show_process=True):
   """Returns the number of attempts (0 means failed)."""
@@ -515,7 +515,7 @@ def main():
   #   IgnoreEarliestHintsWordleSolver,
   #   ThreeCoverWordleSolver, (best)
   #   TwoCoverWordleSolver
-  solver_factory = TwoCoverWordleSolver
+  solver_factory = ThreeCoverWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
