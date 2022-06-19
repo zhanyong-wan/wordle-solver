@@ -52,3 +52,17 @@ Please type this as your guess #6: LARVA
 What are the hints you got (5-letter string, where M = match, O = wrong order, X: not match)? MMMMM
 Success!  The answer is LARVA.
 ```
+
+## Implementation notes
+
+The valid answers and valid guesses are obtained from the game's source code:
+
+1.  Go to the game (https://www.nytimes.com/games/wordle/index.html).
+1.  Right click on the background, View Page Source.
+1.  Find the reference to the source script.  It looks like
+    `<script src="main.5d21d0d0.js"></script>`.
+1.  Open the `.js` file.  Find two lists in it:
+    *   `var ko=["cigar","rebut",...]` is the list of valid answers.
+    *   `wo=["aahed","aalii",...]` is the list of valid guesses.  This is
+        disjoint with the previous list, so the actual valid guesses are
+        the union of the two lists.
