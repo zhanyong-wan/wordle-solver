@@ -208,8 +208,8 @@ class WordleSolverBase:
   """Base class for wordle solvers."""
 
   def __init__(self):
-    self.guess_hints = []
-    self.candidates = ALL_WORDS[:]
+    self.guess_hints = []  # Hints received so far.
+    self.candidates = ALL_WORDS[:]  # Valid guesses that satisfy all hints so far.
 
   def SuggestGuess(self):
     """Subclasses should implement this to return a suggested guess or None."""
@@ -230,6 +230,15 @@ class HardModeEagerWordleSolver(WordleSolverBase):
     4 guesses: 4434 words 34.25%.
     5 guesses: 3208 words 24.78%.
     6 guesses: 1549 words 11.96%.
+
+    Tested 2309 possible answers.
+    Failed: 82 words 3.55%.
+    1 guesses: 1 words 0.04%.
+    2 guesses: 56 words 2.43%.
+    3 guesses: 571 words 24.73%.
+    4 guesses: 934 words 40.45%.
+    5 guesses: 517 words 22.39%.
+    6 guesses: 148 words 6.41%.
   """
 
   def SuggestGuess(self):
@@ -246,6 +255,15 @@ class IgnoreEarliestHintsWordleSolver(WordleSolverBase):
     4 guesses: 4427 words 34.19%.
     5 guesses: 3321 words 25.65%.
     6 guesses: 1592 words 12.30%.
+
+    Tested 2309 possible answers.
+    Failed: 86 words 3.72%.
+    1 guesses: 1 words 0.04%.
+    2 guesses: 35 words 1.52%.
+    3 guesses: 542 words 23.47%.
+    4 guesses: 970 words 42.01%.
+    5 guesses: 522 words 22.61%.
+    6 guesses: 153 words 6.63%.
   """
 
   def SuggestGuess(self):
@@ -263,6 +281,15 @@ class AudioLeftyWordleSolver(WordleSolverBase):
     4 guesses: 4707 words 36.36%.
     5 guesses: 3988 words 30.80%.
     6 guesses: 1610 words 12.44%.
+
+    Tested 2309 possible answers.
+    Failed: 81 words 3.51%.
+    1 guesses: 1 words 0.04%.
+    2 guesses: 1 words 0.04%.
+    3 guesses: 370 words 16.02%.
+    4 guesses: 1045 words 45.26%.
+    5 guesses: 646 words 27.98%.
+    6 guesses: 165 words 7.15%.
   """
 
   def SuggestGuess(self):
@@ -284,6 +311,15 @@ class AudioWordleSolver(WordleSolverBase):
     4 guesses: 4464 words 34.48%.
     5 guesses: 3343 words 25.82%.
     6 guesses: 1612 words 12.45%.
+
+    Tested 2309 possible answers.
+    Failed: 83 words 3.59%.
+    1 guesses: 1 words 0.04%.
+    2 guesses: 29 words 1.26%.
+    3 guesses: 507 words 21.96%.
+    4 guesses: 992 words 42.96%.
+    5 guesses: 535 words 23.17%.
+    6 guesses: 162 words 7.02%.
   """
 
   def SuggestGuess(self):
@@ -303,6 +339,13 @@ class TwoCoverWordleSolver(WordleSolverBase):
     4 guesses: 5100 words 39.39%.
     5 guesses: 3225 words 24.91%.
     6 guesses: 1300 words 10.04%.
+
+    Tested 2309 possible answers.
+    Failed: 72 words 3.12%.
+    3 guesses: 649 words 28.11%.
+    4 guesses: 1011 words 43.79%.
+    5 guesses: 460 words 19.92%.
+    6 guesses: 117 words 5.07%.
   """
 
   def __init__(self):
@@ -340,6 +383,15 @@ class ThreeCoverWordleSolver(WordleSolverBase):
     4 guesses: 6377 words 49.25%.
     5 guesses: 4710 words 36.38%.
     6 guesses: 1240 words 9.58%.
+
+    Tested 2309 possible answers.
+    Failed: 32 words 1.39%.
+    1 guesses: 1 words 0.04%.
+    2 guesses: 1 words 0.04%.
+    3 guesses: 1 words 0.04%.
+    4 guesses: 1478 words 64.01%.
+    5 guesses: 661 words 28.63%.
+    6 guesses: 135 words 5.85%.
   """
 
   def __init__(self):
@@ -381,30 +433,30 @@ def TrySolve(solver, answer, show_process=True):
 
 def Demo(solver_factory):
   random.seed()
-  answer = random.choice(ALL_WORDS)
+  answer = random.choice(VALID_ANSWERS)
   TrySolve(solver_factory(), answer)
 
 def Exhaust(solver_factory):
-  total_num_words = len(ALL_WORDS)
+  total_num_answers = len(VALID_ANSWERS)
   failed = []
   guess_freq = defaultdict(int)  # Maps # of guesses to frequency.
-  for i, answer in enumerate(ALL_WORDS):
+  for i, answer in enumerate(VALID_ANSWERS):
     solver = solver_factory()
     num_guesses = TrySolve(solver, answer, show_process=False)
     guess_freq[num_guesses] += 1
     if not num_guesses:
-      print(f'Failed to solve for answer {answer} (word {i} out of {total_num_words}).')
+      print(f'Failed to solve for answer {answer} (word {i} out of {total_num_answers}).')
       failed.append(answer)
 
   # Print statistics.
-  print(f'Tested {total_num_words} words.')
+  print(f'Tested {total_num_answers} possible answers.')
   for num_guesses in sorted(guess_freq.keys()):
     if num_guesses:
       prefix = f'{num_guesses} guesses'
     else:
       prefix = 'Failed'
     num_words = guess_freq[num_guesses]
-    print(f'{prefix}: {num_words} words {num_words*100.0/total_num_words:.2f}%.')
+    print(f'{prefix}: {num_words} words {num_words*100.0/total_num_answers:.2f}%.')
 
 def IsValidGuess(guess):
   if len(guess) != 5:
@@ -461,9 +513,9 @@ def main():
   #   AudioWordleSolver,
   #   HardModeEagerWordleSolver,
   #   IgnoreEarliestHintsWordleSolver,
-  #   ThreeCoverWordleSolver,
+  #   ThreeCoverWordleSolver, (best)
   #   TwoCoverWordleSolver
-  solver_factory = HardModeEagerWordleSolver
+  solver_factory = TwoCoverWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
