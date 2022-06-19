@@ -25,12 +25,13 @@ USAGE
 """
 
 from collections import defaultdict
+from typing import Callable, Dict, List, Tuple
 
 import os
 import random
 import sys
 
-def GetWordList(rel_path):
+def GetWordList(rel_path: str) -> List[str]:
   py_file_dir = os.path.dirname(__file__)
   wordle_list_file = os.path.join(py_file_dir, rel_path)
   words = []
@@ -46,14 +47,18 @@ VALID_ANSWER_SET = set(VALID_ANSWERS)
 VALID_NON_ANSWER_GUESSES = GetWordList('valid-guesses.txt')
 ALL_WORDS = VALID_ANSWERS + VALID_NON_ANSWER_GUESSES
 
-def GetLetterFrequencies(words):
+def GetLetterFrequencies(words: List[str]) -> Dict[str, int]:
   letter_freq = defaultdict(int)
   for word in words:
     for letter in word:
       letter_freq[letter] += 1
   return letter_freq
 
-def GetWordWithHighestLetterFrequencies(words_for_freq, candidates):
+def GetWordWithHighestLetterFrequencies(words_for_freq: List[str], candidates: List[str]) -> str:
+  # Precondition.
+  assert words_for_freq
+  assert candidates
+
   letter_freq = GetLetterFrequencies(words_for_freq)
   best_word = None
   max_freq = 0
@@ -62,13 +67,14 @@ def GetWordWithHighestLetterFrequencies(words_for_freq, candidates):
     if freq > max_freq:
       max_freq = freq
       best_word = word
+  assert best_word is not None
   return best_word
 
-def GetWordLetterFrequency(word, letter_freq):
+def GetWordLetterFrequency(word: str, letter_freq: Dict[str, int]) -> int:
   return sum(letter_freq[letter] for letter in set(word))
 
 # This returns 300 best pairs.  TODO: find which of the 300 is the best.
-def GetWordPairsWithHighestLetterFrequencies(words):
+def GetWordPairsWithHighestLetterFrequencies(words: List[str]) -> List[Tuple[str, str]]:
   letter_freq = GetLetterFrequencies(words)
   candidates = words
   candidate_freqs = [(word, GetWordLetterFrequency(word, letter_freq))
@@ -100,12 +106,12 @@ def GetWordPairsWithHighestLetterFrequencies(words):
         best_pairs.append((word1, word2))
   return best_pairs
 
-def NormalizeWordAsLetterSet(word):
+def NormalizeWordAsLetterSet(word: str) -> str:
   # hello => ehlo
   # basic => abcis
   return ''.join(sorted(set(word)))
 
-def GetWordTriplesWithHighestLetterFrequencies(words):
+def GetWordTriplesWithHighestLetterFrequencies(words: List[str]) -> List[Tuple[str, str, str]]:
   letter_freq = GetLetterFrequencies(words)
   candidate_words = words
 
@@ -159,7 +165,7 @@ def GetWordTriplesWithHighestLetterFrequencies(words):
             best_triples.append(triple)
   return best_triples
 
-def GetHints(guess, answer):
+def GetHints(guess: str, answer: str) -> str:
   hints = ''
   for i, letter in enumerate(guess):
     if letter == answer[i]:
@@ -171,7 +177,7 @@ def GetHints(guess, answer):
     hints += hint
   return hints
 
-def MatchesHints(word, guess, hints):
+def MatchesHints(word: str, guess: str, hints: str) -> bool:
   for i, hint in enumerate(hints):
     if hint == 'M':
       if word[i] != guess[i]:
@@ -186,13 +192,13 @@ def MatchesHints(word, guess, hints):
         return False
   return True
 
-def FilterByHints(words, guess, hints):
+def FilterByHints(words: List[str], guess: str, hints: str) -> List[str]:
   return [word for word in words if MatchesHints(word, guess, hints)]
 
-def Colored(r, g, b, text):
+def Colored(r: int, g: int, b: int, text: str) -> str:
   return f'\033[38;2;{r};{g};{b}m{text}\033[38;2;255;255;255m'
 
-def FormatHints(guess, hints):
+def FormatHints(guess: str, hints: str) -> str:
   formatted = ''
   for i, letter in enumerate(guess):
     hint = hints[i]
@@ -211,15 +217,15 @@ class WordleSolverBase:
     self.guess_hints = []  # Hints received so far.
     self.candidates = ALL_WORDS[:]  # Valid guesses that satisfy all hints so far.
 
-  def SuggestGuess(self):
+  def SuggestGuess(self) -> str:
     """Subclasses should implement this to return a suggested guess or None."""
     raise Exception('Not implemented.')
 
-  def MakeGuess(self, guess, hints):
+  def MakeGuess(self, guess: str, hints: str) -> None:
     self.guess_hints.append((guess, hints))
     self.candidates = FilterByHints(self.candidates, guess, hints)
 
-  def RestrictCandidatesToValidAnswers(self):
+  def RestrictCandidatesToValidAnswers(self) -> None:
     self.candidates = [word for word in self.candidates if word in VALID_ANSWER_SET]
 
 class HardModeEagerWordleSolver(WordleSolverBase):
@@ -244,7 +250,7 @@ class HardModeEagerWordleSolver(WordleSolverBase):
     6 guesses: 60 words 2.60%.
   """
 
-  def SuggestGuess(self):
+  def SuggestGuess(self) -> str:
     num_guesses = len(self.guess_hints)
     if num_guesses == 0:
       self.RestrictCandidatesToValidAnswers()
@@ -272,7 +278,7 @@ class IgnoreEarliestHintsWordleSolver(WordleSolverBase):
     6 guesses: 84 words 3.64%.
   """
 
-  def SuggestGuess(self):
+  def SuggestGuess(self) -> str:
     num_guesses = len(self.guess_hints)
     if num_guesses == 2:
       self.RestrictCandidatesToValidAnswers()
@@ -301,7 +307,7 @@ class AudioLeftyWordleSolver(WordleSolverBase):
     6 guesses: 104 words 4.50%.
   """
 
-  def SuggestGuess(self):
+  def SuggestGuess(self) -> str:
     num_guesses = len(self.guess_hints)
     if num_guesses == 0:
       return 'AUDIO'
@@ -333,7 +339,7 @@ class AudioWordleSolver(WordleSolverBase):
     6 guesses: 86 words 3.72%.
   """
 
-  def SuggestGuess(self):
+  def SuggestGuess(self) -> str:
     num_guesses = len(self.guess_hints)
     if num_guesses == 0:
       return 'AUDIO'
@@ -369,7 +375,7 @@ class TwoCoverWordleSolver(WordleSolverBase):
     # print(f'Found {len(pairs)} best pairs: {pairs}')  # 300 pairs.
     self.best_pair = ('STARN', 'LOUIE')
 
-  def SuggestGuess(self):
+  def SuggestGuess(self) -> str:
     num_guesses = len(self.guess_hints)
     if num_guesses < 2:
       return self.best_pair[num_guesses]
@@ -417,7 +423,7 @@ class ThreeCoverWordleSolver(WordleSolverBase):
     # print(f'Found {len(triples)} best triples: {triples}')
     self.best_triple = ('LYRIC', 'UPSET', 'NOMAD')
 
-  def SuggestGuess(self):
+  def SuggestGuess(self) -> str:
     num_guesses = len(self.guess_hints)
     if num_guesses < 3:
       return self.best_triple[num_guesses]
@@ -426,7 +432,7 @@ class ThreeCoverWordleSolver(WordleSolverBase):
       self.RestrictCandidatesToValidAnswers()
     return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
-def TrySolve(solver, answer, show_process=True):
+def TrySolve(solver: WordleSolverBase, answer: str, show_process: bool=True) -> int:
   """Returns the number of attempts (0 means failed)."""
 
   for attempt in range(6):
@@ -449,12 +455,12 @@ def TrySolve(solver, answer, show_process=True):
     print('Oops, I ran out of attempts.')
   return 0
 
-def Demo(solver_factory):
+def Demo(solver_factory: Callable[[], WordleSolverBase]) -> None:
   random.seed()
   answer = random.choice(VALID_ANSWERS)
   TrySolve(solver_factory(), answer)
 
-def Exhaust(solver_factory):
+def Exhaust(solver_factory: Callable[[], WordleSolverBase]) -> None:
   total_num_answers = len(VALID_ANSWERS)
   failed = []
   guess_freq = defaultdict(int)  # Maps # of guesses to frequency.
@@ -476,7 +482,7 @@ def Exhaust(solver_factory):
     num_words = guess_freq[num_guesses]
     print(f'{prefix}: {num_words} words {num_words*100.0/total_num_answers:.2f}%.')
 
-def IsValidGuess(guess):
+def IsValidGuess(guess: str) -> bool:
   if len(guess) != 5:
     return False
   for ch in guess:
@@ -484,7 +490,7 @@ def IsValidGuess(guess):
       return False
   return True
 
-def IsValidHints(hints):
+def IsValidHints(hints: str) -> bool:
   if len(hints) != 5:
     return False
   for hint in hints:
@@ -492,7 +498,7 @@ def IsValidHints(hints):
       return False
   return True
 
-def Solve(solver_factory):
+def Solve(solver_factory: Callable[[], WordleSolverBase]) -> None:
   solver = solver_factory()
   for attempt in range(6):
     suggested_guess = solver.SuggestGuess()
@@ -523,7 +529,7 @@ def Solve(solver_factory):
     print(f'Hint: {FormatHints(guess, hints)}')
     solver.MakeGuess(guess, hints)
 
-def main():
+def main() -> None:
   print('Welcome to Zhanyong Wan\'s Wordle Solver!\n')
   args = sys.argv[1:]
   # Valid choices:
@@ -533,7 +539,7 @@ def main():
   #   IgnoreEarliestHintsWordleSolver,
   #   ThreeCoverWordleSolver, (best)
   #   TwoCoverWordleSolver
-  solver_factory = TwoCoverWordleSolver
+  solver_factory = ThreeCoverWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
