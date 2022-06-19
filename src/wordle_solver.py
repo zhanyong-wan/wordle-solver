@@ -30,9 +30,9 @@ import os
 import random
 import sys
 
-def GetWordList():
+def GetWordList(rel_path):
   py_file_dir = os.path.dirname(__file__)
-  wordle_list_file = os.path.join(py_file_dir, '../wordle-list/words')
+  wordle_list_file = os.path.join(py_file_dir, rel_path)
   words = []
   with open(wordle_list_file, 'r') as f:
     for line in f.readlines():
@@ -41,7 +41,9 @@ def GetWordList():
         words.append(word)
   return words
 
-ALL_WORDS = GetWordList()
+VALID_ANSWERS = GetWordList('valid-answers.txt')
+VALID_NON_ANSWER_GUESSES = GetWordList('valid-guesses.txt')
+ALL_WORDS = VALID_ANSWERS + VALID_NON_ANSWER_GUESSES
 
 def GetLetterFrequencies(words):
   letter_freq = defaultdict(int)
