@@ -42,6 +42,7 @@ def GetWordList(rel_path):
   return words
 
 VALID_ANSWERS = GetWordList('valid-answers.txt')
+VALID_ANSWER_SET = set(VALID_ANSWERS)
 VALID_NON_ANSWER_GUESSES = GetWordList('valid-guesses.txt')
 ALL_WORDS = VALID_ANSWERS + VALID_NON_ANSWER_GUESSES
 
@@ -218,6 +219,9 @@ class WordleSolverBase:
     self.guess_hints.append((guess, hints))
     self.candidates = FilterByHints(self.candidates, guess, hints)
 
+  def RestrictCandidatesToValidAnswers(self):
+    self.candidates = [word for word in self.candidates if word in VALID_ANSWER_SET]
+
 class HardModeEagerWordleSolver(WordleSolverBase):
   """A hard-mode solver that always tries the most likely word.
 
@@ -231,16 +235,19 @@ class HardModeEagerWordleSolver(WordleSolverBase):
     6 guesses: 1549 words 11.96%.
 
     Tested 2309 possible answers.
-    Failed: 82 words 3.55%.
+    Failed: 14 words 0.61%.
     1 guesses: 1 words 0.04%.
-    2 guesses: 56 words 2.43%.
-    3 guesses: 571 words 24.73%.
-    4 guesses: 934 words 40.45%.
-    5 guesses: 517 words 22.39%.
-    6 guesses: 148 words 6.41%.
+    2 guesses: 133 words 5.76%.
+    3 guesses: 888 words 38.46%.
+    4 guesses: 944 words 40.88%.
+    5 guesses: 269 words 11.65%.
+    6 guesses: 60 words 2.60%.
   """
 
   def SuggestGuess(self):
+    num_guesses = len(self.guess_hints)
+    if num_guesses == 0:
+      self.RestrictCandidatesToValidAnswers()
     return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class IgnoreEarliestHintsWordleSolver(WordleSolverBase):
@@ -256,17 +263,19 @@ class IgnoreEarliestHintsWordleSolver(WordleSolverBase):
     6 guesses: 1592 words 12.30%.
 
     Tested 2309 possible answers.
-    Failed: 86 words 3.72%.
+    Failed: 30 words 1.30%.
     1 guesses: 1 words 0.04%.
     2 guesses: 35 words 1.52%.
-    3 guesses: 542 words 23.47%.
-    4 guesses: 970 words 42.01%.
-    5 guesses: 522 words 22.61%.
-    6 guesses: 153 words 6.63%.
+    3 guesses: 815 words 35.30%.
+    4 guesses: 1017 words 44.05%.
+    5 guesses: 327 words 14.16%.
+    6 guesses: 84 words 3.64%.
   """
 
   def SuggestGuess(self):
     num_guesses = len(self.guess_hints)
+    if num_guesses == 2:
+      self.RestrictCandidatesToValidAnswers()
     return GetWordWithHighestLetterFrequencies(self.candidates,
                                                ALL_WORDS if num_guesses < 2 else self.candidates)
 
@@ -283,13 +292,13 @@ class AudioLeftyWordleSolver(WordleSolverBase):
     6 guesses: 1610 words 12.44%.
 
     Tested 2309 possible answers.
-    Failed: 81 words 3.51%.
+    Failed: 33 words 1.43%.
     1 guesses: 1 words 0.04%.
     2 guesses: 1 words 0.04%.
     3 guesses: 370 words 16.02%.
-    4 guesses: 1045 words 45.26%.
-    5 guesses: 646 words 27.98%.
-    6 guesses: 165 words 7.15%.
+    4 guesses: 1284 words 55.61%.
+    5 guesses: 516 words 22.35%.
+    6 guesses: 104 words 4.50%.
   """
 
   def SuggestGuess(self):
@@ -298,6 +307,8 @@ class AudioLeftyWordleSolver(WordleSolverBase):
       return 'AUDIO'
     if num_guesses == 1:
       return 'LEFTY'
+    if num_guesses == 3:
+      self.RestrictCandidatesToValidAnswers()
     return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class AudioWordleSolver(WordleSolverBase):
@@ -313,19 +324,21 @@ class AudioWordleSolver(WordleSolverBase):
     6 guesses: 1612 words 12.45%.
 
     Tested 2309 possible answers.
-    Failed: 83 words 3.59%.
+    Failed: 39 words 1.69%.
     1 guesses: 1 words 0.04%.
     2 guesses: 29 words 1.26%.
-    3 guesses: 507 words 21.96%.
-    4 guesses: 992 words 42.96%.
-    5 guesses: 535 words 23.17%.
-    6 guesses: 162 words 7.02%.
+    3 guesses: 770 words 33.35%.
+    4 guesses: 1038 words 44.95%.
+    5 guesses: 346 words 14.98%.
+    6 guesses: 86 words 3.72%.
   """
 
   def SuggestGuess(self):
     num_guesses = len(self.guess_hints)
     if num_guesses == 0:
       return 'AUDIO'
+    if num_guesses == 2:  # 2,3,5 => 1.69%
+      self.RestrictCandidatesToValidAnswers()
     return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class TwoCoverWordleSolver(WordleSolverBase):
@@ -341,11 +354,11 @@ class TwoCoverWordleSolver(WordleSolverBase):
     6 guesses: 1300 words 10.04%.
 
     Tested 2309 possible answers.
-    Failed: 72 words 3.12%.
-    3 guesses: 649 words 28.11%.
-    4 guesses: 1011 words 43.79%.
-    5 guesses: 460 words 19.92%.
-    6 guesses: 117 words 5.07%.
+    Failed: 23 words 1.00%.
+    3 guesses: 927 words 40.15%.
+    4 guesses: 998 words 43.22%.
+    5 guesses: 296 words 12.82%.
+    6 guesses: 65 words 2.82%.
   """
 
   def __init__(self):
@@ -360,6 +373,8 @@ class TwoCoverWordleSolver(WordleSolverBase):
     num_guesses = len(self.guess_hints)
     if num_guesses < 2:
       return self.best_pair[num_guesses]
+    if num_guesses == 2:
+      self.RestrictCandidatesToValidAnswers()
     return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 class ThreeCoverWordleSolver(WordleSolverBase):
@@ -385,13 +400,13 @@ class ThreeCoverWordleSolver(WordleSolverBase):
     6 guesses: 1240 words 9.58%.
 
     Tested 2309 possible answers.
-    Failed: 32 words 1.39%.
+    Failed: 10 words 0.43%.
     1 guesses: 1 words 0.04%.
     2 guesses: 1 words 0.04%.
     3 guesses: 1 words 0.04%.
     4 guesses: 1478 words 64.01%.
-    5 guesses: 661 words 28.63%.
-    6 guesses: 135 words 5.85%.
+    5 guesses: 745 words 32.27%.
+    6 guesses: 73 words 3.16%.
   """
 
   def __init__(self):
@@ -406,6 +421,9 @@ class ThreeCoverWordleSolver(WordleSolverBase):
     num_guesses = len(self.guess_hints)
     if num_guesses < 3:
       return self.best_triple[num_guesses]
+    if num_guesses == 4:
+      # After 4 guesses, only try words that are valid answer words.
+      self.RestrictCandidatesToValidAnswers()
     return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 def TrySolve(solver, answer, show_process=True):
@@ -515,7 +533,7 @@ def main():
   #   IgnoreEarliestHintsWordleSolver,
   #   ThreeCoverWordleSolver, (best)
   #   TwoCoverWordleSolver
-  solver_factory = ThreeCoverWordleSolver
+  solver_factory = TwoCoverWordleSolver
   if 'demo' in args:
     Demo(solver_factory)
   elif 'solve' in args:
