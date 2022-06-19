@@ -1,5 +1,6 @@
 # wordle-solver
-A tool for solving the New York Times wordle puzzles in the hard mode.
+A perfect solver for the New York Times wordle puzzles.  This tool can solve all
+wordle puzzles within 6 guesses.
 
 ## USAGE
 
@@ -23,9 +24,6 @@ here's how it works:
     the second letter of the guess is in the answer and at the right spot,
     and the remaining letters of the guess are not in the answer.
 5.  Repeat the above steps.
-
-This tool's strategy conforms to the game's hard mode. I.e. it only makes
-guesses that conform to all revealed hints.
 
 Example session:
 

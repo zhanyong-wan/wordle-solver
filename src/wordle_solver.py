@@ -469,13 +469,13 @@ class ThreeCoverWordleSolver(WordleSolverBase):
 class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
     """A solver that tries to cover the highest-frequency letters in the first 3 guesses and uses experience to improve the odds.
 
-        Tested 2309 possible answers.
-        1 guesses: 1 words 0.04%.
-        2 guesses: 1 words 0.04%.
-        3 guesses: 1 words 0.04%.
-        4 guesses: 1475 words 63.88%.
-        5 guesses: 746 words 32.31%.
-        6 guesses: 85 words 3.68%.
+    Tested 2309 possible answers.
+    1 guesses: 1 words 0.04%.
+    2 guesses: 1 words 0.04%.
+    3 guesses: 1 words 0.04%.
+    4 guesses: 1475 words 63.88%.
+    5 guesses: 746 words 32.31%.
+    6 guesses: 85 words 3.68%.
     """
 
     def __init__(self):
@@ -491,27 +491,68 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
         if num_guesses < 3:
             return self.best_triple[num_guesses]
         if num_guesses == 3:
-            if self.guess_hints == [('LYRIC', 'XXXXX'), ('UPSET', 'OXXXM'), ('NOMAD', 'OXXOX')]:
+            if self.guess_hints == [
+                ("LYRIC", "XXXXX"),
+                ("UPSET", "OXXXM"),
+                ("NOMAD", "OXXOX"),
+            ]:
                 return "VUGHS"
-            if self.guess_hints == [('LYRIC', 'XXXXO'), ('UPSET', 'XXXXO'), ('NOMAD', 'XXXOX')]:
+            if self.guess_hints == [
+                ("LYRIC", "XXXXO"),
+                ("UPSET", "XXXXO"),
+                ("NOMAD", "XXXOX"),
+            ]:
                 return "CROWS"
-            if self.guess_hints == [('LYRIC', 'XXXXX'), ('UPSET', 'OXXXX'), ('NOMAD', 'OMXXM')]:
+            if self.guess_hints == [
+                ("LYRIC", "XXXXX"),
+                ("UPSET", "OXXXX"),
+                ("NOMAD", "OMXXM"),
+            ]:
                 return "FROWN"
-
         if num_guesses == 4:
             # After 4 guesses, only try words that are valid answer words.
             self.RestrictCandidatesToValidAnswers()
-            if self.guess_hints == [('LYRIC', 'XXOXX'), ('UPSET', 'XXXMX'), ('NOMAD', 'XMXXX'), ('WOKER', 'XMXMM')]:
+            if self.guess_hints == [
+                ("LYRIC", "XXOXX"),
+                ("UPSET", "XXXMX"),
+                ("NOMAD", "XMXXX"),
+                ("WOKER", "XMXMM"),
+            ]:
                 return "RAVES"
-            if self.guess_hints == [('LYRIC', 'XXXXX'), ('UPSET', 'XXMOO'), ('NOMAD', 'XXXOX'), ('WASTE', 'XMMMM')]:
+            if self.guess_hints == [
+                ("LYRIC", "XXXXX"),
+                ("UPSET", "XXMOO"),
+                ("NOMAD", "XXXOX"),
+                ("WASTE", "XMMMM"),
+            ]:
                 return "TOOTH"
-            if self.guess_hints == [('LYRIC', 'XXXXX'), ('UPSET', 'XXOOO'), ('NOMAD', 'XXXOX'), ('STAKE', 'MMMXM')]:
+            if self.guess_hints == [
+                ("LYRIC", "XXXXX"),
+                ("UPSET", "XXOOO"),
+                ("NOMAD", "XXXOX"),
+                ("STAKE", "MMMXM"),
+            ]:
                 return "GOATS"
-            if self.guess_hints == [('LYRIC', 'OXOOX'), ('UPSET', 'XXXXX'), ('NOMAD', 'XXXXX'), ('WHIRL', 'XXMOM')]:
+            if self.guess_hints == [
+                ("LYRIC", "OXOOX"),
+                ("UPSET", "XXXXX"),
+                ("NOMAD", "XXXXX"),
+                ("WHIRL", "XXMOM"),
+            ]:
                 return "FROGS"
-            if self.guess_hints == [('LYRIC', 'OOXXX'), ('UPSET', 'XXXXX'), ('NOMAD', 'XMXXX'), ('JOWLY', 'XMXMM')]:
+            if self.guess_hints == [
+                ("LYRIC", "OOXXX"),
+                ("UPSET", "XXXXX"),
+                ("NOMAD", "XMXXX"),
+                ("JOWLY", "XMXMM"),
+            ]:
                 return "FROGS"
-            if self.guess_hints == [('LYRIC', 'OOXOX'), ('UPSET', 'XXXXX'), ('NOMAD', 'XXXXX'), ('BIGLY', 'XMXMM')]:
+            if self.guess_hints == [
+                ("LYRIC", "OOXOX"),
+                ("UPSET", "XXXXX"),
+                ("NOMAD", "XXXXX"),
+                ("BIGLY", "XMXMM"),
+            ]:
                 return "FROWN"
         return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
