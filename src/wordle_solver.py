@@ -53,6 +53,10 @@ ALL_WORDS = VALID_ANSWERS + VALID_NON_ANSWER_GUESSES
 def GetLetterFrequencies(words: List[str]) -> Dict[str, int]:
     letter_freq = defaultdict(int)
     for word in words:
+        # Only consider valid answer words when calcultating letter frequencies.
+        if word not in VALID_ANSWER_SET:
+            continue
+
         for letter in word:
             letter_freq[letter] += 1
     return letter_freq
@@ -473,10 +477,10 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
     1 guesses: 1 words 0.04%.
     2 guesses: 45 words 1.95%.
     3 guesses: 524 words 22.69%.
-    4 guesses: 1005 words 43.53%.
-    5 guesses: 656 words 28.41%.
-    6 guesses: 78 words 3.38%.
-    Average # of guesses: 4.084.
+    4 guesses: 1223 words 52.97%.
+    5 guesses: 452 words 19.58%.
+    6 guesses: 64 words 2.77%.
+    Average # of guesses: 3.984.
     """
 
     def __init__(self):
@@ -574,6 +578,27 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
                 ("BIGLY", "XMXMM"),
             ]:
                 return "FROWN"
+            if self.guess_hints == [
+                ("LYRIC", "XXOXX"),
+                ("UPSET", "XXXMX"),
+                ("NOMAD", "XMXXX"),
+                ("VOWER", "XMXMM"),
+            ]:
+                return "BOOKS"
+            if self.guess_hints == [
+                ("LYRIC", "OOXOX"),
+                ("UPSET", "XXXXX"),
+                ("NOMAD", "XXXXX"),
+                ("FILLY", "XMMMM"),
+            ]:
+                return "HOBBY"
+            if self.guess_hints == [
+                ("LYRIC", "OXXXX"),
+                ("UPSET", "OXOXX"),
+                ("NOMAD", "XXXXX"),
+                ("HULKS", "OOOXO"),
+            ]:
+                return "BARFS"
         return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 
