@@ -471,12 +471,12 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
 
     Tested 2309 possible answers.
     1 guesses: 1 words 0.04%.
-    2 guesses: 43 words 1.86%.
-    3 guesses: 479 words 20.74%.
-    4 guesses: 1032 words 44.69%.
-    5 guesses: 671 words 29.06%.
-    6 guesses: 83 words 3.59%.
-    Average # of guesses: 4.117.
+    2 guesses: 45 words 1.95%.
+    3 guesses: 524 words 22.69%.
+    4 guesses: 1005 words 43.53%.
+    5 guesses: 656 words 28.41%.
+    6 guesses: 78 words 3.38%.
+    Average # of guesses: 4.084.
     """
 
     def __init__(self):
@@ -496,10 +496,12 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
         if num_guesses < 3:
             # Switch from exploration mode to solution mode early if there aren't
             # many remaining words.
-            threshold = 3**(3 - num_guesses) * 3
+            threshold = 3 ** (3 - num_guesses) * 4
             if num_candidates <= threshold:
                 self.RestrictCandidatesToValidAnswers()
-                return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
+                return GetWordWithHighestLetterFrequencies(
+                    self.candidates, self.candidates
+                )
 
             return self.best_triple[num_guesses]
         if num_guesses == 3:
@@ -521,6 +523,12 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
                 ("NOMAD", "OMXXM"),
             ]:
                 return "FROWN"
+            if self.guess_hints == [
+                ("LYRIC", "OXOOX"),
+                ("UPSET", "XXXXX"),
+                ("WHIRL", "XXMOM"),
+            ]:
+                return "GREEK"
         if num_guesses == 4:
             # After 4 guesses, only try words that are valid answer words.
             self.RestrictCandidatesToValidAnswers()
@@ -623,7 +631,7 @@ def Exhaust(solver_factory: Callable[[], WordleSolverBase]) -> None:
         else:
             prefix = "Failed"
         num_words = guess_freq[num_guesses]
-        total_guesses += num_words*(num_guesses if num_guesses else 7)
+        total_guesses += num_words * (num_guesses if num_guesses else 7)
         print(f"{prefix}: {num_words} words {num_words*100.0/total_num_answers:.2f}%.")
     print(f"Average # of guesses: {total_guesses / total_num_answers:.3f}.")
 
@@ -689,11 +697,14 @@ def PrintWordsWithHighestLetterFrequencies() -> None:
     for word in ALL_WORDS:
         freq = sum(letter_freqs[ch] for ch in set(word))
         word_freq_pairs.append((word, freq))
-    sorted_word_freq_pairs = sorted(word_freq_pairs, key = lambda pair: pair[1], reverse=True)
+    sorted_word_freq_pairs = sorted(
+        word_freq_pairs, key=lambda pair: pair[1], reverse=True
+    )
     for word, freq in sorted_word_freq_pairs[:10]:
         print(f"{word}: {freq}")
     for word, freq in sorted_word_freq_pairs[-10:]:
         print(f"{word}: {freq}")
+
 
 def main() -> None:
     print("Welcome to Zhanyong Wan's Wordle Solver!\n")
