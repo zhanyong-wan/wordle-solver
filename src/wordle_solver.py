@@ -661,13 +661,32 @@ def Solve(solver_factory: Callable[[], WordleSolverBase]) -> None:
         solver.MakeGuess(guess, hints)
 
 
+def PrintLetterFrequencies() -> None:
+    freqs = list(GetLetterFrequencies(ALL_WORDS).items())
+    sorted_freqs = sorted(freqs, key=lambda pair: pair[1], reverse=True)
+    for letter, freq in sorted_freqs:
+        print(f"{letter}: {freq}")
+
+
+def PrintWordsWithHighestLetterFrequencies() -> None:
+    letter_freqs = GetLetterFrequencies(ALL_WORDS)
+    word_freq_pairs = []
+    for word in ALL_WORDS:
+        freq = sum(letter_freqs[ch] for ch in set(word))
+        word_freq_pairs.append((word, freq))
+    sorted_word_freq_pairs = sorted(word_freq_pairs, key = lambda pair: pair[1], reverse=True)
+    for word, freq in sorted_word_freq_pairs[:10]:
+        print(f"{word}: {freq}")
+    for word, freq in sorted_word_freq_pairs[-10:]:
+        print(f"{word}: {freq}")
+
 def main() -> None:
     print("Welcome to Zhanyong Wan's Wordle Solver!\n")
     args = sys.argv[1:]
     # Valid choices:
-    #   AudioLeftyWordleSolver,
-    #   AudioWordleSolver,
-    #   HardModeEagerWordleSolver,
+    #   AudioLeftyWordleSolver,  #
+    #   AudioWordleSolver,  #
+    #   HardModeEagerWordleSolver,  #
     #   IgnoreEarliestHintsWordleSolver,
     #   ThreeCoverWordleSolver, (second best)
     #   TwoCoverWordleSolver,
