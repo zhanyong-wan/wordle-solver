@@ -476,6 +476,7 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
     4 guesses: 1475 words 63.88%.
     5 guesses: 746 words 32.31%.
     6 guesses: 85 words 3.68%.
+    Average # of guesses: 4.394.
     """
 
     def __init__(self):
@@ -604,13 +605,16 @@ def Exhaust(solver_factory: Callable[[], WordleSolverBase]) -> None:
 
     # Print statistics.
     print(f"Tested {total_num_answers} possible answers.")
+    total_guesses = 0
     for num_guesses in sorted(guess_freq.keys()):
         if num_guesses:
             prefix = f"{num_guesses} guesses"
         else:
             prefix = "Failed"
         num_words = guess_freq[num_guesses]
+        total_guesses += num_words*(num_guesses if num_guesses else 7)
         print(f"{prefix}: {num_words} words {num_words*100.0/total_num_answers:.2f}%.")
+    print(f"Average # of guesses: {total_guesses / total_num_answers:.3f}.")
 
 
 def IsValidGuess(guess: str) -> bool:
