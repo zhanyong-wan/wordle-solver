@@ -471,12 +471,12 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
 
     Tested 2309 possible answers.
     1 guesses: 1 words 0.04%.
-    2 guesses: 1 words 0.04%.
-    3 guesses: 1 words 0.04%.
-    4 guesses: 1475 words 63.88%.
+    2 guesses: 5 words 0.22%.
+    3 guesses: 142 words 6.15%.
+    4 guesses: 1330 words 57.60%.
     5 guesses: 746 words 32.31%.
     6 guesses: 85 words 3.68%.
-    Average # of guesses: 4.394.
+    Average # of guesses: 4.330.
     """
 
     def __init__(self):
@@ -488,6 +488,9 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
         self.best_triple = ("LYRIC", "UPSET", "NOMAD")
 
     def SuggestGuess(self) -> str:
+        if len(self.candidates) == 1:
+            return self.candidates[0]
+
         num_guesses = len(self.guess_hints)
         if num_guesses < 3:
             return self.best_triple[num_guesses]
