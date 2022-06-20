@@ -461,9 +461,6 @@ class ThreeCoverWordleSolver(WordleSolverBase):
     def __init__(self):
         super().__init__()
         # Set best_triple to the result of GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS).
-        # We hard code the words here as it's slow to call this function.
-        # triples = GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS)
-        # print(f'Found {len(triples)} best triples: {triples}')
         self.best_triple = ("LYRIC", "UPSET", "NOMAD")
 
     def SuggestGuess(self) -> str:
@@ -492,9 +489,6 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
     def __init__(self):
         super().__init__()
         # Set best_triple to the result of GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS).
-        # We hard code the words here as it's slow to call this function.
-        # triples = GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS)
-        # print(f'Found {len(triples)} best triples: {triples}')
         self.best_triple = ("LYRIC", "UPSET", "NOMAD")
 
     def SuggestGuess(self) -> str:
@@ -605,6 +599,95 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
                 ("HULKS", "OOOXO"),
             ]:
                 return "BARFS"
+        return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
+
+
+class NewThreeCoverWordleSolver(WordleSolverBase):
+    """A solver that tries to cover the highest-frequency letters in the first 3 guesses and uses experience to improve the odds.
+    It differs from ExperiencedThreeCoverWordleSolver in that it picks a different
+    starting triple, which doesn't consider non-answer words when computing the letter frequencies.
+
+    Tested 2309 possible answers.
+    2 guesses: 66 words 2.86%.
+    3 guesses: 682 words 29.54%.
+    4 guesses: 1157 words 50.11%.
+    5 guesses: 350 words 15.16%.
+    6 guesses: 54 words 2.34%.
+    Average # of guesses: 3.846.
+    """
+
+    def __init__(self):
+        super().__init__()
+        # Set best_triple to the result of GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS).
+        self.best_triple = ("ROATE", "PULIS", "CHYND")
+
+    def SuggestGuess(self) -> str:
+        num_candidates = len(self.candidates)
+        if num_candidates == 1:
+            return self.candidates[0]
+
+        num_guesses = len(self.guess_hints)
+        if num_guesses < 3:
+            if self.guess_hints == [("ROATE", "XXOMM"), ("SAUTE", "OMXMM")]:
+                return "CHIPS"
+            # Switch from exploration mode to solution mode early if there aren't
+            # many remaining words.
+            threshold = 3 ** (3 - num_guesses) * 4
+            if num_candidates <= threshold:
+                self.RestrictCandidatesToValidAnswers()
+                return GetWordWithHighestLetterFrequencies(
+                    self.candidates, self.candidates
+                )
+
+            return self.best_triple[num_guesses]
+        if num_guesses == 3:
+            if self.guess_hints == [
+                ("ROATE", "XMXXX"),
+                ("PULIS", "XOXXX"),
+                ("CHYND", "XXXMM"),
+            ]:
+                return "BOWER"
+            if self.guess_hints == [
+                ("ROATE", "OXOXO"),
+                ("PULIS", "XXXXX"),
+                ("CHYND", "XXXXX"),
+            ]:
+                return "WAGER"
+            if self.guess_hints == [
+                ("ROATE", "OXOOO"),
+                ("PULIS", "XXXXX"),
+                ("CHYND", "XXXXX"),
+            ]:
+                return "TAMER"
+            if self.guess_hints == [
+                ("ROATE", "XXOOX"),
+                ("PULIS", "XOXXX"),
+                ("CHYND", "XXXMX"),
+            ]:
+                return "TANGO"
+            if self.guess_hints == [
+                ("ROATE", "XXOOX"),
+                ("PULIS", "XXXXX"),
+                ("CHYND", "OOXXX"),
+            ]:
+                return "BROWN"
+        if num_guesses == 4:
+            # After 4 guesses, only try words that are valid answer words.
+            self.RestrictCandidatesToValidAnswers()
+            if self.guess_hints == [
+                ("ROATE", "XXXOX"),
+                ("PULIS", "XXXOX"),
+                ("CHYND", "XOXXX"),
+                ("MIGHT", "XMMMM"),
+            ]:
+                return "FROWN"
+            if self.guess_hints == [
+                ("ROATE", "OXXXO"),
+                ("PULIS", "XXXXX"),
+                ("CHYND", "XXOXX"),
+                ("JERKY", "XMMXM"),
+            ]:
+                return "BLOOM"
         return GetWordWithHighestLetterFrequencies(self.candidates, self.candidates)
 
 
@@ -740,7 +823,7 @@ def PrintWordsWithHighestLetterFrequencies() -> None:
 def FindBestTriples() -> None:
     triples = GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS)
     py_file_dir = os.path.dirname(__file__)
-    triple_list_file = os.path.join(py_file_dir, 'best-triples.txt')
+    triple_list_file = os.path.join(py_file_dir, "best-triples.txt")
     print(f"Found {len(triples)} best triples.")
     with open(triple_list_file, "w") as f:
         for word1, word2, word3 in triples:
@@ -758,7 +841,8 @@ def main() -> None:
     #   ThreeCoverWordleSolver, (second best)
     #   TwoCoverWordleSolver,
     #   ExperiencedThreeCoverWordleSolver (perfect)
-    solver_factory = ExperiencedThreeCoverWordleSolver
+    #   NewThreeCoverWordleSolver (perfect, best)
+    solver_factory = NewThreeCoverWordleSolver
     if "demo" in args:
         Demo(solver_factory)
     elif "solve" in args:
