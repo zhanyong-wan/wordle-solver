@@ -22,6 +22,12 @@ USAGE
 
       This tool's strategy conforms to the game's hard mode. I.e. it only makes
       guesses that conform to all revealed hints.
+
+    wordle_solver.py test
+      tests the algorithm with all possible answers.
+
+    wordle_solver.py triples
+      updates src/best-triples.txt with the best triple words.
 """
 
 from collections import defaultdict
@@ -632,7 +638,7 @@ def Demo(solver_factory: Callable[[], WordleSolverBase]) -> None:
     TrySolve(solver_factory(), answer)
 
 
-def Exhaust(solver_factory: Callable[[], WordleSolverBase]) -> None:
+def TestSolver(solver_factory: Callable[[], WordleSolverBase]) -> None:
     total_num_answers = len(VALID_ANSWERS)
     failed = []
     guess_freq = defaultdict(int)  # Maps # of guesses to frequency.
@@ -731,13 +737,23 @@ def PrintWordsWithHighestLetterFrequencies() -> None:
         print(f"{word}: {freq}")
 
 
+def FindBestTriples() -> None:
+    triples = GetWordTriplesWithHighestLetterFrequencies(ALL_WORDS)
+    py_file_dir = os.path.dirname(__file__)
+    triple_list_file = os.path.join(py_file_dir, 'best-triples.txt')
+    print(f"Found {len(triples)} best triples.")
+    with open(triple_list_file, "w") as f:
+        for word1, word2, word3 in triples:
+            f.write(f"{word1} {word2} {word3}\n")
+
+
 def main() -> None:
     print("Welcome to Zhanyong Wan's Wordle Solver!\n")
     args = sys.argv[1:]
     # Valid choices:
-    #   AudioLeftyWordleSolver,  #
-    #   AudioWordleSolver,  #
-    #   HardModeEagerWordleSolver,  #
+    #   AudioLeftyWordleSolver,
+    #   AudioWordleSolver,
+    #   HardModeEagerWordleSolver,
     #   IgnoreEarliestHintsWordleSolver,
     #   ThreeCoverWordleSolver, (second best)
     #   TwoCoverWordleSolver,
@@ -747,8 +763,10 @@ def main() -> None:
         Demo(solver_factory)
     elif "solve" in args:
         Solve(solver_factory)
-    elif "exhaust" in args:
-        Exhaust(solver_factory)
+    elif "test" in args:
+        TestSolver(solver_factory)
+    elif "triples" in args:
+        FindBestTriples()
     else:
         sys.exit(__doc__)
 
