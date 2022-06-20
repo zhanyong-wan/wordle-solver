@@ -492,16 +492,12 @@ class ExperiencedThreeCoverWordleSolver(WordleSolverBase):
         self.best_triple = ("LYRIC", "UPSET", "NOMAD")
 
     def SuggestGuess(self) -> str:
-        num_candidates = len(self.candidates)
-        if num_candidates == 1:
-            return self.candidates[0]
-
         num_guesses = len(self.guess_hints)
         if num_guesses < 3:
             # Switch from exploration mode to solution mode early if there aren't
             # many remaining words.
             threshold = 3 ** (3 - num_guesses) * 4
-            if num_candidates <= threshold:
+            if len(self.candidates) <= threshold:
                 self.RestrictCandidatesToValidAnswers()
                 return GetWordWithHighestLetterFrequencies(
                     self.candidates, self.candidates
@@ -622,10 +618,6 @@ class NewThreeCoverWordleSolver(WordleSolverBase):
         self.best_triple = ("ROATE", "PULIS", "CHYND")
 
     def SuggestGuess(self) -> str:
-        num_candidates = len(self.candidates)
-        if num_candidates == 1:
-            return self.candidates[0]
-
         num_guesses = len(self.guess_hints)
         if num_guesses < 3:
             if self.guess_hints == [("ROATE", "XXOMM"), ("SAUTE", "OMXMM")]:
@@ -633,7 +625,7 @@ class NewThreeCoverWordleSolver(WordleSolverBase):
             # Switch from exploration mode to solution mode early if there aren't
             # many remaining words.
             threshold = 3 ** (3 - num_guesses) * 4
-            if num_candidates <= threshold:
+            if len(self.candidates) <= threshold:
                 self.RestrictCandidatesToValidAnswers()
                 return GetWordWithHighestLetterFrequencies(
                     self.candidates, self.candidates
