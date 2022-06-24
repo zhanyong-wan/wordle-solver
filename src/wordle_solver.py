@@ -772,6 +772,11 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
     assert len(tiles) == 5*6, f"Unexpected number of tiles: {len(tiles)}"
 
     for attempt in range(6):
+        num_candidates = len(solver.candidates)
+        print(f"{num_candidates} candidates remaining.")
+        if num_candidates <= 10:
+            print(" ".join(sorted(solver.candidates)))
+
         guess = solver.SuggestGuess()
         print(f"Guess #{attempt + 1}: {guess}")
         if not guess:
