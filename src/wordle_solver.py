@@ -794,12 +794,14 @@ def WebDemo(solver_factory: Callable[[], WordleSolverBase]) -> None:
 
     print("Downloading web driver...")
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-    driver.get("https://www.nytimes.com/games/wordle/index.html")
-    go_on = input("Press enter to start playing the game.")
+    while True:
+        driver.get("https://www.nytimes.com/games/wordle/index.html")
+        print("Starting the game in 3 seconds...")
+        time.sleep(3)
 
-    TrySolveWeb(driver, solver_factory())
-    go_on = input("Press enter to close the browser window. ")
-    driver.close()
+        TrySolveWeb(driver, solver_factory())
+        print("Restarting the game in 1 hour...")
+        time.sleep(60*60)
 
 
 def Demo(solver_factory: Callable[[], WordleSolverBase]) -> None:
