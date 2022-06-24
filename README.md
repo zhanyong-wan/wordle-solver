@@ -5,16 +5,24 @@ wordle puzzles within 6 guesses.
 ## USAGE
 
 ```
+wordle_solver.py webdemo
+```
+
+demonstrates solving a Wordle puzzle on the NYT website; this requires
+Chrome, selenium, and webdriver-manager to be installed.
+
+```
 wordle_solver.py demo
 ```
-demonstrates solving a Wordle puzzle.
+demonstrates solving a Wordle puzzle locally.
 
 ```
 wordle_solver.py solve
 ```
 
-helps you solve a Wordle puzzle (https://www.nytimes.com/games/wordle/index.html);
-here's how it works:
+helps you solve a Wordle puzzle (https://www.nytimes.com/games/wordle/index.html.
+
+Here's how it works:
 
 1.  The tool tells you what you should guess next.
 2.  You type the guess into the Wordle game.

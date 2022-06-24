@@ -4,8 +4,12 @@
 
 USAGE
 
+    wordle_solver.py webdemo
+      demonstrates solving a Wordle puzzle on the NYT website;
+      requires selenium and webdriver-manager to be installed.
+
     wordle_solver.py demo
-      demonstrates solving a Wordle puzzle.
+      demonstrates solving a Wordle puzzle locally.
 
     wordle_solver.py solve
       helps you solve a Wordle puzzle (https://www.nytimes.com/games/wordle/index.html);
@@ -36,7 +40,22 @@ from typing import Callable, Dict, List, Tuple
 import os
 import random
 import sys
+import time
 
+WEB_AUTOMATION = True
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service as ChromeService
+    from selenium.webdriver.common.by import By
+except ModuleNotFoundError:
+    print("To automate interaction with the game site, run 'pip install selenium' to install the selenium python binding.")
+    WEB_AUTOMATION = False
+
+try:
+    from webdriver_manager.chrome import ChromeDriverManager
+except ModuleNotFoundError:
+    print("To automate interaction with the game site, run 'pip install webdriver-manager' to install the webdriver-manager python library.")
+    WEB_AUTOMATION = False
 
 def GetWordList(rel_path: str) -> List[str]:
     py_file_dir = os.path.dirname(__file__)
@@ -707,7 +726,85 @@ def TrySolve(solver: WordleSolverBase, answer: str, show_process: bool = True) -
     return 0
 
 
+def GetKeyIndexInGameKeyboard(key: str) -> int:
+    """Returns the index of the given key in the game's keyboard."""
+    keyboard = "qwertyuiopasdfghjkl\nzxcvbnm<"
+    return keyboard.find(key.lower())
+
+
+def GetHintsFromWeb(tiles) -> str:
+    """Returns the hints shown in the given tiles on the game's website.
+
+    Args:
+        tiles: a list of letter tiles on the website; we only care about
+               the first 5 of them.    
+    """
+
+    hints = ""
+    for tile in tiles[:5]:
+        state = tile.get_attribute("data-state")
+        if state == "correct":
+            hints += "M"
+        elif state == "present":
+            hints += "O"
+        elif state == "absent":
+            hints += "X"
+        else:
+            hints += " "
+    return hints
+
+
+def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
+    """Solves the game on the NYT website.
+ 
+    Returns:
+        the number of attempts (0 means failed).
+    """
+
+    close_icon = driver.find_element_by_class_name("Modal-module_closeIcon__b4z74")
+    close_icon.click()
+    time.sleep(1)  # Wait for the initial pop-up to be dismissed.
+
+    # Find the elements on the game page for interaction.
+    keyboard = driver.find_elements(By.CLASS_NAME, "Key-module_key__Rv-Vp")
+    assert len(keyboard) == 28, f"Unexpected number of keys: {len(keyboard)}"
+    tiles=driver.find_elements(By.CLASS_NAME, "Tile-module_tile__3ayIZ")
+    assert len(tiles) == 5*6, f"Unexpected number of tiles: {len(tiles)}"
+
+    for attempt in range(6):
+        guess = solver.SuggestGuess()
+        print(f"Guess #{attempt + 1}: {guess}")
+        if not guess:
+            return 0
+        for char in guess + "\n":
+            keyboard[GetKeyIndexInGameKeyboard(char)].click()
+            time.sleep(0.1)
+        time.sleep(1.9)
+        hints = GetHintsFromWeb(tiles[5*attempt:])
+        print(f"Hints: {hints}")
+        if hints == "MMMMM":
+            print(f"You win with {attempt + 1} guesses!")
+            return attempt + 1
+        solver.MakeGuess(guess, hints)
+    return 0
+
+
+def WebDemo(solver_factory: Callable[[], WordleSolverBase]) -> None:
+    """Demostrates solving the game on the NYT website."""
+
+    print("Downloading web driver...")
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    driver.get("https://www.nytimes.com/games/wordle/index.html")
+    go_on = input("Press enter to start playing the game.")
+
+    TrySolveWeb(driver, solver_factory())
+    go_on = input("Press enter to close the browser window. ")
+    driver.close()
+
+
 def Demo(solver_factory: Callable[[], WordleSolverBase]) -> None:
+    """Demostrates solving the game locally."""
+
     random.seed()
     answer = random.choice(VALID_ANSWERS)
     TrySolve(solver_factory(), answer)
@@ -837,6 +934,12 @@ def main() -> None:
     solver_factory = NewThreeCoverWordleSolver
     if "demo" in args:
         Demo(solver_factory)
+    elif "webdemo" in args:
+        if WEB_AUTOMATION:
+            WebDemo(solver_factory)
+        else:
+            print("Web automation is not available. Doing a local demo instead.")
+            Demo(solver_factory)
     elif "solve" in args:
         Solve(solver_factory)
     elif "test" in args:
