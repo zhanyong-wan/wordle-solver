@@ -45,6 +45,7 @@ import time
 WEB_AUTOMATION = True
 try:
     from selenium import webdriver
+    from selenium.common.exceptions import NoSuchElementException
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.chrome.service import Service as ChromeService
     from selenium.webdriver.common.by import By
@@ -762,8 +763,14 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
         the number of attempts (0 means failed).
     """
 
-    close_icon = driver.find_element_by_class_name("Modal-module_closeIcon__b4z74")
-    close_icon.click()
+    try:
+        close_icon = driver.find_element_by_class_name("Modal-module_closeIcon__b4z74")
+        close_icon.click()
+    except NoSuchElementException:
+        # There's no close button.  This could happen if the browser session already
+        # has a history of playing wordle.  Just ignore it.
+        pass
+
     time.sleep(1)  # Wait for the initial pop-up to be dismissed.
 
     # Find the elements on the game page for interaction.
