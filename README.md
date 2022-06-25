@@ -22,7 +22,55 @@ wordle_solver.py solve
 
 helps you solve a Wordle puzzle (https://www.nytimes.com/games/wordle/index.html.
 
-Here's how it works:
+### webdemo
+
+Before running the `webdemo` command, you need to set up your machine to
+allow Python to interact with an existing Chrome session:
+
+```
+pip install selenium
+pip install webdriver-manager
+```
+
+Then, add the following lines to `~/.bash_profile`:
+
+```
+# Set up for running Chrome from the command line.
+export PATH="/Applications/Google Chrome.app/Contents/MacOS:$PATH"
+alias chrome-for-wordle='Google\ Chrome --remote-debugging-port=9222 --user-data-dir="~/WordleChromeProfile"'
+```
+
+Then run:
+
+```
+source ~/.bash_profile
+mkdir ~/WordleChromeProfile
+chrome-for-wordle
+```
+
+A new Chrome window should open.  The tool will use this window to play the game.
+To start auto-playing, run this in another shell window:
+
+```
+wordle-solver/src/wordle_solver webdemo
+```
+
+The tool will repeatedly play the game (once an hour).  Therefore if you let it
+run for multiple days, you'll get a winning streak.  However, if the work is
+interrupted somehow (e.g. the tool crashed, the Chrome window is closed, the
+machine is restarted, etc), you can resume playing without losing the winning
+history, by
+
+```
+# Start chrome.
+chrome-for-wordle
+# In another shell window, start the tool:
+wordle-solver/src/wordle_solver webdemo
+```
+
+### solve
+
+Here's how `solve` works:
 
 1.  The tool tells you what you should guess next.
 2.  You type the guess into the Wordle game.

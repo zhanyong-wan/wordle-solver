@@ -45,6 +45,7 @@ import time
 WEB_AUTOMATION = True
 try:
     from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.chrome.service import Service as ChromeService
     from selenium.webdriver.common.by import By
 except ModuleNotFoundError:
@@ -798,7 +799,10 @@ def WebDemo(solver_factory: Callable[[], WordleSolverBase]) -> None:
     """Demostrates solving the game on the NYT website."""
 
     print("Downloading web driver...")
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    chrome_options = Options()
+    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
+                              chrome_options=chrome_options)
     while True:
         driver.get("https://www.nytimes.com/games/wordle/index.html")
         print("Starting the game in 3 seconds...")
