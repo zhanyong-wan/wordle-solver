@@ -751,8 +751,6 @@ def GetHintsFromWeb(tiles) -> str:
             hints += "O"
         elif state == "absent":
             hints += "X"
-        else:
-            hints += " "
     return hints
 
 
@@ -791,10 +789,13 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
             return 0
         for char in guess + "\n":
             keyboard[GetKeyIndexInGameKeyboard(char)].click()
-            time.sleep(0.1)
-        time.sleep(1.9)
+            time.sleep(0.2)
+        time.sleep(2)
         hints = GetHintsFromWeb(tiles[5*attempt:])
         print(f"Hints: {hints}")
+        if len(hints) != 5:
+            print("Invalid hints.  Will retry the game later.")
+            return 0
         if hints == "MMMMM":
             print(f"You win with {attempt + 1} guesses!")
             return attempt + 1
