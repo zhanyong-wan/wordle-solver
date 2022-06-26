@@ -767,7 +767,7 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
 
     for attempt in range(3):
         try:
-            close_icon = driver.find_element_by_class_name("Modal-module_closeIcon__b4z74")
+            close_icon = driver.find_element(by=By.CLASS_NAME, value="Modal-module_closeIcon__b4z74")
             close_icon.click()
             break
         except NoSuchElementException:
@@ -815,7 +815,7 @@ def WebDemo(solver_factory: Callable[[], WordleSolverBase]) -> None:
     chrome_options = Options()
     chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
-                              chrome_options=chrome_options)
+                              options=chrome_options)
     while True:
         TrySolveWeb(driver, solver_factory())
         print("Restarting the game in 1 hour...")
