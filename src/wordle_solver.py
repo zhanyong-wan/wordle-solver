@@ -35,6 +35,7 @@ USAGE
 """
 
 from collections import defaultdict
+from datetime import datetime
 from typing import Callable, Dict, List, Tuple
 
 import os
@@ -761,11 +762,15 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
         the number of attempts (0 means failed).
     """
 
-    driver.get("https://www.nytimes.com/games/wordle/index.html")
-    print("Starting the game in 3 seconds...")
-    time.sleep(3)
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    print(f"Current Time: {current_time}")
 
     for attempt in range(3):
+        driver.get("https://www.nytimes.com/games/wordle/index.html")
+        print("Starting the game in 3 seconds...")
+        time.sleep(3)
+
         try:
             close_icon = driver.find_element(by=By.CLASS_NAME, value="Modal-module_closeIcon__b4z74")
             close_icon.click()
