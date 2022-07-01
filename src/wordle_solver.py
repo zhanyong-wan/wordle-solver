@@ -735,12 +735,26 @@ def GetKeyIndexInGameKeyboard(key: str) -> int:
     return keyboard.find(key.lower())
 
 
+def GetGuessFromWeb(remaining_tiles) -> str:
+    """Returns the guess shown in the given tiles on the game's website.
+
+    Args:
+        tiles: a list of letter tiles on the website; we only care about
+               the first 5 of them.
+    """
+
+    guess = ""
+    for tile in remaining_tiles[:5]:
+        guess += tile.text
+    return guess
+
+
 def GetHintsFromWeb(tiles) -> str:
     """Returns the hints shown in the given tiles on the game's website.
 
     Args:
         tiles: a list of letter tiles on the website; we only care about
-               the first 5 of them.    
+               the first 5 of them.
     """
 
     hints = ""
@@ -788,20 +802,26 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
     assert len(tiles) == 5*6, f"Unexpected number of tiles: {len(tiles)}"
 
     for attempt in range(6):
+        remaining_tiles = tiles[5*attempt:]
         num_candidates = len(solver.candidates)
         print(f"{num_candidates} candidates remaining.")
         if num_candidates <= 10:
             print(" ".join(sorted(solver.candidates)))
 
-        guess = solver.SuggestGuess()
-        print(f"Guess #{attempt + 1}: {guess}")
-        if not guess:
-            return 0
-        for char in guess + "\n":
-            keyboard[GetKeyIndexInGameKeyboard(char)].click()
-            time.sleep(0.2)
-        time.sleep(2)
-        hints = GetHintsFromWeb(tiles[5*attempt:])
+        guess = GetGuessFromWeb(remaining_tiles)
+        if guess:
+            print(f"Using pre-existing guess from the game: {guess}.")
+        else:  # No pre-existing guess.
+            # Let the solver make a guess.
+            guess = solver.SuggestGuess()
+            print(f"Guess #{attempt + 1}: {guess}")
+            if not guess:
+                return 0
+            for char in guess + "\n":
+                keyboard[GetKeyIndexInGameKeyboard(char)].click()
+                time.sleep(0.2)
+            time.sleep(2)
+        hints = GetHintsFromWeb(remaining_tiles)
         print(f"Hints: {hints}")
         if len(hints) != 5:
             print("Invalid hints.  Will retry the game later.")
