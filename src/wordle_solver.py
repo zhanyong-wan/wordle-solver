@@ -51,14 +51,21 @@ try:
     from selenium.webdriver.chrome.service import Service as ChromeService
     from selenium.webdriver.common.by import By
 except ModuleNotFoundError:
-    print("To automate interaction with the game site, run 'pip install selenium' to install the selenium python binding.")
+    print(
+        "To automate interaction with the game site, run 'pip install selenium' "
+        "to install the selenium python binding."
+    )
     WEB_AUTOMATION = False
 
 try:
     from webdriver_manager.chrome import ChromeDriverManager
 except ModuleNotFoundError:
-    print("To automate interaction with the game site, run 'pip install webdriver-manager' to install the webdriver-manager python library.")
+    print(
+        "To automate interaction with the game site, run 'pip install webdriver-manager' "
+        "to install the webdriver-manager python library."
+    )
     WEB_AUTOMATION = False
+
 
 def GetWordList(rel_path: str) -> List[str]:
     py_file_dir = os.path.dirname(__file__)
@@ -771,7 +778,7 @@ def GetHintsFromWeb(tiles) -> str:
 
 def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
     """Solves the game on the NYT website.
- 
+
     Returns:
         the number of attempts (0 means failed).
     """
@@ -786,7 +793,9 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
         time.sleep(3)
 
         try:
-            close_icon = driver.find_element(by=By.CLASS_NAME, value="Modal-module_closeIcon__b4z74")
+            close_icon = driver.find_element(
+                by=By.CLASS_NAME, value="Modal-module_closeIcon__b4z74"
+            )
             close_icon.click()
             break
         except NoSuchElementException:
@@ -798,11 +807,11 @@ def TrySolveWeb(driver: webdriver.Chrome, solver: WordleSolverBase) -> int:
     # Find the elements on the game page for interaction.
     keyboard = driver.find_elements(By.CLASS_NAME, "Key-module_key__Rv-Vp")
     assert len(keyboard) == 28, f"Unexpected number of keys: {len(keyboard)}"
-    tiles=driver.find_elements(By.CLASS_NAME, "Tile-module_tile__3ayIZ")
-    assert len(tiles) == 5*6, f"Unexpected number of tiles: {len(tiles)}"
+    tiles = driver.find_elements(By.CLASS_NAME, "Tile-module_tile__3ayIZ")
+    assert len(tiles) == 5 * 6, f"Unexpected number of tiles: {len(tiles)}"
 
     for attempt in range(6):
-        remaining_tiles = tiles[5*attempt:]
+        remaining_tiles = tiles[5 * attempt :]
         num_candidates = len(solver.candidates)
         print(f"{num_candidates} candidates remaining.")
         if num_candidates <= 10:
@@ -839,12 +848,13 @@ def WebDemo(solver_factory: Callable[[], WordleSolverBase]) -> None:
     print("Downloading web driver...")
     chrome_options = Options()
     chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
-                              options=chrome_options)
+    driver = webdriver.Chrome(
+        service=ChromeService(ChromeDriverManager().install()), options=chrome_options
+    )
     while True:
         TrySolveWeb(driver, solver_factory())
         print("Restarting the game in 1 hour...")
-        time.sleep(60*60)
+        time.sleep(60 * 60)
 
 
 def Demo(solver_factory: Callable[[], WordleSolverBase]) -> None:
